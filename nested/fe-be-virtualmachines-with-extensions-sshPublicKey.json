@@ -67,9 +67,6 @@
                         }
                     ]
                 },
-             /*   "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('computeSettings').chefBEAvailName)]"
-                },*/
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
@@ -131,9 +128,6 @@
                         }
                     ]
                 },
-              /*  "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('computeSettings').chefBEAvailName)]"
-                },*/
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
@@ -195,9 +189,6 @@
                         }
                     ]
                 },
-                /*"availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('computeSettings').chefBEAvailName)]"
-                },*/
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
@@ -259,9 +250,6 @@
                         }
                     ]
                 },
-                /*"availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('computeSettings').chefFEAvailName)]"
-                },*/
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
@@ -323,9 +311,6 @@
                         }
                     ]
                 },
-               /* "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('computeSettings').chefFEAvailName)]"
-                },*/
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
@@ -387,9 +372,6 @@
                         }
                     ]
                 },
-               /* "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('computeSettings').chefFEAvailName)]"
-                },*/
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
