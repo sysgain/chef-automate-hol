@@ -2,17 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "vaultSku": {
-            "type": "string",
-            "defaultValue": "Standard",
-            "allowedValues": [
-                "Standard",
-                "Premium"
-            ],
-            "metadata": {
-                "description": "SKU for the vault"
-            }
-        },
         "adminUsername": {
             "defaultValue": "chefuser",
             "type": "string",
@@ -95,7 +84,6 @@
             "clusterTokenValue": "[concat('chv-',substring(variables('prefix'),0,12),'-ctt')]",
             "clusterNameValue": "[concat('chef-',substring(variables('prefix'),0,8))]",
             "location": "[resourceGroup().location]",
-            "vaultSku": "[parameters('vaultSku')]",
             "dbPassword": "dbPassword",
             "replicationPassword": "replicationPassword",
             "clusterToken": "clusterToken",
@@ -106,7 +94,7 @@
             "location": "[resourceGroup().location]",
             "computeApiVersion": "2016-04-30-preview",
             "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword":"[parameters('adminPassword')]",
+            "adminPassword": "[parameters('adminPassword')]",
             "sshKeyData": "[parameters('sshKeyData')]",
             "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
             "chefServerUserName": "delivery",
@@ -135,8 +123,7 @@
             "feVmExtensionName2": "fe1-ex2",
             "chefFEAvailName": "fe-avail",
             "autoComputerName": "chefautomate",
-            "chefAutoExtenName": "chef-auto-ex",
-            "keyvaultId": "[concat(subscription().id,'/resourceGroups/',resourceGroup().name, '/providers/Microsoft.KeyVault/vaults/', variables('keyvaultSettings').keyVaultName)]"
+            "chefAutoExtenName": "chef-auto-ex"
         },
         "storageSettings": {
             "location": "[resourceGroup().location]",
@@ -167,10 +154,10 @@
             "feLoadBalancerName": "fe-lb",
             "beSubnetName": "be-subnet",
             "beSubnetPrefix": "10.0.1.0/24",
-            "wsSubnetName":"ws-subnet",
-            "wsSubnetPrefix":"10.0.2.0/24",
-            "nodesSubnetName":"nodes-subnet",
-            "nodesSubnetPrefix":"10.0.3.0/24",
+            "wsSubnetName": "ws-subnet",
+            "wsSubnetPrefix": "10.0.2.0/24",
+            "nodesSubnetName": "nodes-subnet",
+            "nodesSubnetPrefix": "10.0.3.0/24",
             "publicIPAddressType": "Dynamic",
             "dnsLabelPrefixFE": "[concat(parameters('chefServerDnsPrefix'),substring(variables('prefix') ,0 ,3))]",
             "dnsLabelPrefixChefAuto": "[concat(parameters('chefAutomateDnsPrefix'),substring(variables('prefix') ,0 ,3))]",
@@ -179,6 +166,7 @@
         "baseURl": "https://raw.githubusercontent.com/sysgain/chef-automate-hol/master/",
         "managedDisksResourcesURL": "[concat(variables('baseURl'),'nested/managedDisksResource.json')]",
         "diagnosticStorageAccountResourcesURL": "[concat(variables('baseURl'),'nested/diagnosticStorageAccountResource.json')]",
+        "availabilitySetSResourcesURL": "[concat(variables('baseURl'),'nested/availabilitySetsResource.json')]",
         "publicIPAddressesResourcesURL": "[concat(variables('baseURl'),'nested/publicIPAddressResource.json')]",
         "networkSecurityGroupsResourcesURL": "[concat(variables('baseURl'),'nested/networkSecurityGroupsResource.json')]",
         "virtualNetworksResourcesURL": "[concat(variables('baseURl'),'nested/virtualNetworksResource.json')]",
@@ -196,6 +184,23 @@
         "prefix": "[uniqueString(resourceGroup().id)]"
     },
     "resources": [
+        {
+            "name": "availabilitySetsResource",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deploymentApiVersion')]",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('availabilitySetSResourcesURL')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "computeSettings": {
+                        "value": "[variables('computeSettings')]"
+                    }
+                }
+            }
+        },
         {
             "name": "managedDisksResource",
             "type": "Microsoft.Resources/deployments",
@@ -400,12 +405,69 @@
                     },
                     "networkSettings": {
                         "value": "[variables('networksettings')]"
+                    },
+                    "dbPassword": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "dbPassword"
+                        }
+                    },
+                    "replicationPassword": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "replicationPassword"
+                        }
+                    },
+                    "clusterToken": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "clusterToken"
+                        }
+                    },
+                    "clusterName": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "clusterName"
+                        }
+                    },
+                    "chefdeliveryuserkey": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "chefdeliveryuserkey"
+                        }
+                    },
+                    "chefdeliveryuserpassword": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "chefdeliveryuserpassword"
+                        }
+                    },
+                    "chefsecrets": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/keyvault-chefhol/providers/Microsoft.KeyVault/vaults/keyvaultchefhol"
+                            },
+                            "secretName": "chefsecrets"
+                        }
                     }
                 }
             },
             "dependsOn": [
                 "managedDisksResource",
                 "diagnosticStorageAccountsResource",
+                "availabilitySetsResource",
                 "fe-networkInterfacesResource",
                 "be-networkInterfacesResource",
                 "chefAuto-networkInterfacesResource"
@@ -425,7 +487,7 @@
             "type": "string",
             "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
         },
-        "keyvaultName":{
+        "keyvaultName": {
             "type": "string",
             "value": "[variables('keyvaultSettings').keyVaultName]"
         },
@@ -433,7 +495,7 @@
             "type": "string",
             "value": "[variables('computeSettings').chefServerUserName]"
         },
-         "chef-server-webLogin-password": {
+        "chef-server-webLogin-password": {
             "type": "string",
             "value": "The chef-server-weblogin-password stored in the keyvault,you can retrieve it using azure CLI 2.0 [az keyvault secret show --name chefdeliveryuserpassword --vault-name < keyvaultname >]"
         },
@@ -444,6 +506,34 @@
         "chef-automate-fqdn": {
             "type": "string",
             "value": "[reference('publicIPAddressesResource').outputs.chefAutomatefqdn.value]"
+        },
+        "dbPassword": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.dbPassword.value]"
+        },
+        "replicationPassword": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.replicationPassword.value]"
+        },
+        "clusterToken": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.clusterToken.value]"
+        },
+        "clusterName": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.clusterName.value]"
+        },
+        "chefdeliveryuserkey": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.chefdeliveryuserkey.value]"
+        },
+        "chefdeliveryuserpassword": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.chefdeliveryuserpassword.value]"
+        },
+        "chefsecrets": {
+            "type": "string",
+            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.chefsecrets.value]"
         }
     }
 }
