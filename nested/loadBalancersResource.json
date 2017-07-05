@@ -120,7 +120,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('networkSettings').feLoadBalancerName),'/backendAddressPools/',parameters('networkSettings').bePoolName1)]"
                             },
                             "probe": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('networkSettings').feLoadBalancerName),'/probes/probe-http')]"
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('networkSettings').feLoadBalancerName),'/probes/probe-https')]"
                             }
                         }
                     }
