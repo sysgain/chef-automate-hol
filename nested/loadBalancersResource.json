@@ -31,9 +31,6 @@
                 "backendAddressPools": [
                     {
                         "name": "[parameters('networkSettings').bePoolName1]"
-                    },
-                    {
-                        "name": "[parameters('networkSettings').bePoolName2]"
                     }
                 ],
                 "inboundNatRules": [],
@@ -55,6 +52,15 @@
                             "intervalInSeconds": 5,
                             "numberOfProbes": 2
                         }
+                    },
+                    {
+                        "name": "probe-https",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 443,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
                     }
                 ],
                 "loadBalancingRules": [
@@ -71,7 +77,7 @@
                             "protocol": "Tcp",
                             "loadDistribution": "SourceIP",
                             "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('networkSettings').feLoadBalancerName),'/backendAddressPools/',parameters('networkSettings').bePoolName2)]"
+                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('networkSettings').feLoadBalancerName),'/backendAddressPools/',parameters('networkSettings').bePoolName1)]"
                             },
                             "probe": {
                                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers',parameters('networkSettings').feLoadBalancerName),'/probes/probe-ssh')]"
