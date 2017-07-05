@@ -1,0 +1,169 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "networkSettings": {
+            "type": "secureObject"
+        },
+        "computeSettings":{
+            "type": "string"
+        },
+        "wsSubnetRef":{
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+ {
+            "name": "[parameters('networkSettings').wsPip]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('networkSettings').wsClientDns]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('networkSettings').wsNsg]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "https",
+                        "properties": {
+                            "priority": 100,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "443",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "http",
+                        "properties": {
+                            "priority": 101,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "80",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "winrm",
+                        "properties": {
+                            "priority": 102,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "5985",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "httpsout",
+                        "properties": {
+                            "priority": 1070,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "TCP",
+                            "destinationPortRange": "443",
+                            "access": "Allow",
+                            "direction": "Outbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "default-allow-rdp",
+                        "properties": {
+                            "priority": 1000,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "TCP",
+                            "destinationPortRange": "3389",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('networkSettings').wsNic]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('wsSubnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('networkSettings').wsPip)]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSettings').wsNsg)]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('computeSettings').wsVmName]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "[parameters('computeSettings').computeApiVersion]",
+            "location": "[parameters('computeSettings').location]",
+           
+            "properties": {
+                "osProfile": {
+                    "computerName": "[parameters('computeSettings').wsVmName]",
+                    "adminUsername": "[parameters('computeSettings').adminUsername]",
+                    "adminPassword": "[parameters('computeSettings').adminPassword]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('computeSettings').virtualMachineSize]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "id": "[concat('/subscriptions/',parameters('computeSettings').customImageSubscription,'/resourceGroups/',parameters('computeSettings').customImageRG,'/providers/Microsoft.Compute/images/automate-test-drive-image-20170629150147')]"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('computeSettings').storageAccountType]"
+                        }
+                    },
+                    "dataDisks": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('computeSettings').wsNic)]"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
