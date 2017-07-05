@@ -29,6 +29,9 @@
                             "loadBalancerBackendAddressPools": [
                                 {
                                     "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('networkSettings').feLoadBalancerName), '/backendAddressPools/',parameters('networkSettings').bePoolName1)]"
+                                },
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('networkSettings').feLoadBalancerName), '/backendAddressPools/',parameters('networkSettings').bePoolName2)]"
                                 }
                             ]
                         }
@@ -51,13 +54,13 @@
             "properties": {
                 "ipConfigurations": [
                     {
-                        "name": "ipconfig2",
+                        "name": "ipconfig1",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
                             "subnet": {
                                 "id": "[parameters('feSubnetRef')]"
                             },
-                            "privateIPAddress": "10.0.0.51",
+                            "privateIPAddress": "10.0.0.52",
                             "loadBalancerBackendAddressPools": [
                                 {
                                     "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('networkSettings').feLoadBalancerName), '/backendAddressPools/',parameters('networkSettings').bePoolName1)]"
@@ -83,13 +86,13 @@
             "properties": {
                 "ipConfigurations": [
                     {
-                        "name": "ipconfig3",
+                        "name": "ipconfig1",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
                             "subnet": {
                                 "id": "[parameters('feSubnetRef')]"
                             },
-                            "privateIPAddress": "10.0.0.52",
+                            "privateIPAddress": "10.0.0.51",
                             "loadBalancerBackendAddressPools": [
                                 {
                                     "id": "[concat(resourceId('Microsoft.Network/loadBalancers', parameters('networkSettings').feLoadBalancerName), '/backendAddressPools/',parameters('networkSettings').bePoolName1)]"
