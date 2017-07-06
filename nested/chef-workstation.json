@@ -6,7 +6,7 @@
             "type": "secureObject"
         },
         "computeSettings": {
-            "type": "object"
+            "type": "secureObject"
         },
         "wsSubnetRef": {
             "type": "string"
