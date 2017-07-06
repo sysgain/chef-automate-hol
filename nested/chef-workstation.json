@@ -5,16 +5,16 @@
         "networkSettings": {
             "type": "secureObject"
         },
-        "computeSettings":{
+        "computeSettings": {
             "type": "object"
         },
-        "wsSubnetRef":{
+        "wsSubnetRef": {
             "type": "string"
         }
     },
     "variables": {},
     "resources": [
- {
+        {
             "name": "[parameters('networkSettings').wsPip]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
@@ -106,6 +106,9 @@
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "location": "[parameters('networkSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').wsNsg)]"
+            ],
             "properties": {
                 "ipConfigurations": [
                     {
@@ -131,7 +134,9 @@
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "[parameters('computeSettings').computeApiVersion]",
             "location": "[parameters('computeSettings').location]",
-           
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/',parameters('networkSettings').wsNic)]"
+            ],
             "properties": {
                 "osProfile": {
                     "computerName": "[parameters('computeSettings').wsVmName]",
