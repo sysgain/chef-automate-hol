@@ -9,28 +9,39 @@
                 "description": "User name for the Virtual Machine."
             }
         },
-        "authenticationType": {
-            "type": "string",
-            "allowedValues": [
-                "password",
-                "sshPublicKey"
-            ],
-            "metadata": {
-                "description": "Choose a password or ssh public key for the Admin username used to access virtual machines"
-            }
-        },
         "adminPassword": {
             "type": "securestring",
-            "defaultValue": "",
+            "defaultValue": "Password@1234",
             "metadata": {
                 "description": "Admin password"
             }
         },
-        "sshKeyData": {
-            "defaultValue": "",
-            "type": "securestring",
+        "nodesAdminUsername": {
+            "defaultValue": "nodeuser",
+            "type": "string",
             "metadata": {
-                "description": "SSH rsa public key file as a string."
+                "description": "User name for the Virtual Machine."
+            }
+        },
+        "nodesAdminPassword": {
+            "type": "securestring",
+            "defaultValue": "Password@1234",
+            "metadata": {
+                "description": "Admin password"
+            }
+        },
+        "wsAdminUsername": {
+            "defaultValue": "windowsuser",
+            "type": "string",
+            "metadata": {
+                "description": "User name for the Virtual Machine."
+            }
+        },
+        "wsAdminPassword": {
+            "type": "securestring",
+            "defaultValue": "Password@1234",
+            "metadata": {
+                "description": "Admin password"
             }
         },
         "vmSize": {
@@ -90,16 +101,19 @@
             "clusterName": "clusterName"
         },
         "computeSettings": {
-            "count": 11,
+            "count": 9,
             "location": "[resourceGroup().location]",
             "computeApiVersion": "2016-04-30-preview",
             "adminUsername": "[parameters('adminUsername')]",
             "adminPassword": "[parameters('adminPassword')]",
-            "sshKeyData": "[parameters('sshKeyData')]",
+            "nodesAdminUsername":"[parameters('nodesAdminUsername')]",
+            "nodesAdminPassword":"[parameters('nodesAdminPassword')]",
+             "wsAdminUsername":"[parameters('wsAdminUsername')]",
+            "wsAdminPassword":"[parameters('wsAdminPassword')]",
             "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
             "chefServerUserName": "delivery",
             "managedDiskName": "dataDisk",
-            "storageAccountType": "Premium_LRS",
+            "storageAccountType": "Standard_LRS",
             "diagStorageAccountType": "Standard_LRS",
             "diskCreateOption": "empty",
             "diskSizeGB": 50,
@@ -111,9 +125,12 @@
             "imageOffer": "UbuntuServer",
             "ubuntuOSVersion": "16.04-LTS",
             "imageVersion": "latest",
-            "imagePublisherWindows":"MicrosoftWindowsServer",
-            "imageOfferWindows":"WindowsServer",
-            "windowsOSVersion":"2012-R2-Datacenter",
+            "imagePublisherWindows": "MicrosoftWindowsServer",
+            "imageOfferWindows": "WindowsServer",
+            "windowsOSVersion": "2012-R2-Datacenter",
+            "imagePublisherLinux":"Canonical",
+            "imageOfferLinux":"UbuntuServer",
+            "ubuntuOSVersionlinux":"14.04.2-LTS",
             "chefBEAvailName": "be-avail",
             "leadercomputerName": "be0",
             "followercomputerName1": "be1",
@@ -131,7 +148,14 @@
             "feVmExtensionName2": "fe1-ex2",
             "chefFEAvailName": "fe-avail",
             "autoComputerName": "chefautomate",
-            "chefAutoExtenName": "chef-auto-ex"
+            "chefAutoExtenName": "chef-auto-ex",
+            "ChefWSNodeComputerName": "chefwsNode",
+            "chefWSNodeVmSize":"Standard_D2_v2",
+            "vmSizeChefEnvironmentNodes":"Standard_D1",
+             "chefwsNodeNic": "[variables('chefwsNodeNic')]",
+            "linuxvmcount":"[variables('linuxvmcount')]",
+            "chefEnvNodesComputerName": "chefEnvironmentNode",
+             "chefenvNodesNic":"[variables('chefenvNodesNic')]"
         },
         "storageSettings": {
             "location": "[resourceGroup().location]",
@@ -169,8 +193,15 @@
             "wsPip": "ws-client-pip",
             "wsNsg": "ws-client-nsg",
             "wsNic": "[variables('wsNic')]",
+            "chefwsNodePip": "chef-wsnodepip",
+            "chefwsNodeDns": "[concat('chefwsnode',substring(variables('prefix') ,0 ,5))]",
+            "chefwsNodeNic": "[variables('chefwsNodeNic')]",
+            "chefEnvNodePip":"chef-pipenvironmentnode",
+            "chefenvNodeDns": "[concat('chefenvnode',substring(variables('prefix') ,0 ,5))]",
+            "linuxvmcount":"[variables('linuxvmcount')]",
             "publicIpAddressType": "Dynamic",
             "wsClientDns": "[concat('wsclient',substring(variables('prefix') ,0 ,5))]",
+            "chefenvNodesNic":"[variables('chefenvNodesNic')]",
             "publicIPAddressType": "Dynamic",
             "dnsLabelPrefixFE": "[concat(parameters('chefServerDnsPrefix'),substring(variables('prefix') ,0 ,3))]",
             "dnsLabelPrefixChefAuto": "[concat(parameters('chefAutomateDnsPrefix'),substring(variables('prefix') ,0 ,3))]",
@@ -187,14 +218,19 @@
         "fe-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/fe-networkInterfacesResource.json')]",
         "be-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/be-networkInterfacesResource.json')]",
         "chefAuto-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/chefAuto-networkInterfacesResource.json')]",
-        "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-',parameters('authenticationType'),'.json')]",
+        "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-password.json')]",
         "workstationurl": "[concat(variables('baseURl'),'nested/chef-workstation.json')]",
+        "chef-nodesUrl":"[concat(variables('baseURl'),'nested/chef-nodes.json')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('networkSettings').virtualNetworkName)]",
         "beSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').beSubnetName)]",
         "feSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').feSubnetName)]",
         "wsSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').wsSubnetName)]",
+        "nodesSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').nodesSubnetName)]",
         "felbPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('networkSettings').felbPublicIPAddressName)]",
         "chefAutoPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('networkSettings').chefAutoPublicIPAddressName)]",
+        "linuxvmcount":3,
+        "chefwsNodeNic": "chef-wsnodepip",
+        "chefenvNodesNic":"chef-envnodesnic",
         "wsNic": "ws-client-nic",
         "deploymentApiVersion": "2015-01-01",
         "prefix": "[uniqueString(resourceGroup().id)]"
@@ -491,7 +527,7 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "workstation",
+            "name": "chef-workstation",
             "apiVersion": "[variables('deploymentApiVersion')]",
             "dependsOn": [
                 "virtualNetworksResource"
@@ -511,6 +547,32 @@
                     },
                     "wsSubnetRef": {
                         "value": "[variables('wsSubnetRef')]"
+                    }
+                }
+            }
+        },
+           {
+            "type": "Microsoft.Resources/deployments",
+            "name": "chef-nodes",
+            "apiVersion": "[variables('deploymentApiVersion')]",
+            "dependsOn": [
+                "virtualNetworksResource"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('chef-nodesUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "computeSettings": {
+                        "value": "[variables('computeSettings')]"
+                    },
+                    "networkSettings": {
+                        "value": "[variables('networksettings')]"
+                    },
+                    "nodesSubnetRef": {
+                        "value": "[variables('nodesSubnetRef')]"
                     }
                 }
             }
