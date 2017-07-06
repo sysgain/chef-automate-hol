@@ -6,7 +6,7 @@
             "type": "secureObject"
         },
         "computeSettings": {
-            "type": "secureObject"
+            "type": "object"
         },
         "wsSubnetRef": {
             "type": "string"
@@ -140,8 +140,8 @@
             "properties": {
                 "osProfile": {
                     "computerName": "[parameters('computeSettings').wsVmName]",
-                    "adminUsername": "[parameters('computeSettings').adminUsername]",
-                    "adminPassword": "[parameters('computeSettings').adminPassword]",
+                    "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
+                    "adminPassword": "[parameters('computeSettings').wsAdminPassword]",
                     "windowsConfiguration": {
                         "provisionVmAgent": true
                     }
@@ -162,7 +162,17 @@
                             "storageAccountType": "[parameters('computeSettings').storageAccountType]"
                         }
                     },
-                    "dataDisks": []
+                   "dataDisks": [
+                        {
+                            "name": "[concat(parameters('computeSettings').managedDiskName,'7')]",
+                            "lun": 0,
+                            "caching": "None",
+                            "createOption": "Attach",
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks',concat(parameters('computeSettings').managedDiskName,'7'))]"
+                            }
+                        }
+                    ]
                 },
                 "networkProfile": {
                     "networkInterfaces": [
