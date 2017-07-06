@@ -65,8 +65,8 @@
                 },
                 "osProfile": {
                     "computerName": "[parameters('computeSettings').ChefWSNodeComputerName]",
-                    "adminUsername": "[parameters('computeSettings').adminUsername]",
-                    "adminPassword": "[parameters('computeSettings').adminPassword]"
+                    "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
+                    "adminPassword": "[parameters('computeSettings').wsAdminPassword]"
                 },
                 "storageProfile": {
                     "imageReference": {
@@ -80,7 +80,18 @@
                         "managedDisk": {
                             "storageAccountType": "[parameters('computeSettings').storageAccountType]"
                         }
-                    }
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "[concat(parameters('computeSettings').managedDiskName,'8')]",
+                            "lun": 0,
+                            "caching": "None",
+                            "createOption": "Attach",
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks',concat(parameters('computeSettings').managedDiskName,'8'))]"
+                            }
+                        }
+                    ]
                 },
                 "networkProfile": {
                     "networkInterfaces": [
@@ -154,8 +165,8 @@
                 },
                 "osProfile": {
                     "computerName": "[concat(parameters('computeSettings').chefEnvNodesComputerName,copyindex())]",
-                     "adminUsername": "[parameters('computeSettings').adminUsername]",
-                    "adminPassword": "[parameters('computeSettings').adminPassword]"
+                     "adminUsername": "[parameters('computeSettings').nodesAdminUsername]",
+                    "adminPassword": "[parameters('computeSettings').nodesAdminPassword]"
                 },
                 "storageProfile": {
                     "imageReference": {
