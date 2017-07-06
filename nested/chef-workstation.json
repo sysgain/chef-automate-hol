@@ -146,7 +146,10 @@
                 },
                 "storageProfile": {
                     "imageReference": {
-                        "id": "[concat('/subscriptions/',parameters('computeSettings').customImageSubscription,'/resourceGroups/',parameters('computeSettings').customImageRG,'/providers/Microsoft.Compute/images/automate-test-drive-image-20170629150147')]"
+                        "publisher": "[parameters('computeSettings').imagePublisherWindows]",
+                        "offer": "[parameters('computeSettings').imageOfferWindows]",
+                        "sku": "[parameters('computeSettings').windowsOSVersion]",
+                        "version": "latest"
                     },
                     "osDisk": {
                         "createOption": "fromImage",
