@@ -1,0 +1,184 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "networkSettings": {
+            "type": "secureObject"
+        },
+        "computeSettings": {
+            "type": "string"
+        },
+        "nodesSubnetRef": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('networkSettings').chefwsNodePip]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefwsNodeDns)]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkSettings').chefwsNodeNic]",
+            "location": "[parameters('networkSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/',parameters('networkSettings').chefwsNodePip)]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').chefwsNodePip)]"
+                            },
+                            "subnet": {
+                                "id": "[parameters('nodesSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[parameters('computeSettings').computeApiVersion]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('computeSettings').ChefWSNodeComputerName]",
+            "location": "[parameters('computeSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkSettings').chefwsNodeNic)]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('computeSettings').chefWSNodeVmSize]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('computeSettings').ChefWSNodeComputerName]",
+                    "adminUsername": "[parameters('computeSettings').adminUsername]",
+                    "adminPassword": "[parameters('computeSettings').adminPassword]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('computeSettings').imagePublisherWindows]",
+                        "offer": "[parameters('computeSettings').imageOfferWindows]",
+                        "sku": "[parameters('computeSettings').windowsOSVersion]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('computeSettings').storageAccountType]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',parameters('computeSettings').chefwsNodeNic)]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,copyindex())]",
+            "location": "[parameters('networkSettings').location]",
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('networkSettings').linuxvmcount]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefwsNodeDns,copyindex())]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('networkSettings').chefenvNodesNic,copyindex())]",
+            "location": "[parameters('networkSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('networkSettings').chefEnvNodePip,copyindex())]"
+            ],
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('networkSettings').linuxvmcount]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('networkSettings').chefEnvNodePip,copyindex()))]"
+                            },
+                            "subnet": {
+                                "id": "[parameters('nodesSubnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[parameters('computeSettings').computeApiVersion]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(parameters('computeSettings').chefEnvNodesComputerName,copyindex())]",
+            "location": "[parameters('computeSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkSettings').chefenvNodesNic,copyindex())]"
+            ],
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('computeSettings').linuxvmcount]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('computeSettings').vmSizeChefEnvironmentNodes]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(parameters('computeSettings').chefEnvNodesComputerName,copyindex())]",
+                     "adminUsername": "[parameters('computeSettings').adminUsername]",
+                    "adminPassword": "[parameters('computeSettings').adminPassword]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('computeSettings').imagePublisherLinux]",
+                        "offer": "[parameters('computeSettings').imageOfferLinux]",
+                        "sku": "[parameters('computeSettings').ubuntuOSVersion]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('computeSettings').storageAccountType]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('networkSettings').chefenvNodesNic,copyindex()))]"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
