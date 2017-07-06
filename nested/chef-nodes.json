@@ -6,7 +6,7 @@
             "type": "secureObject"
         },
         "computeSettings": {
-            "type": "string"
+            "type": "object"
         },
         "nodesSubnetRef": {
             "type": "string"
