@@ -104,10 +104,16 @@
             "diskCreateOption": "empty",
             "diskSizeGB": 50,
             "vmSize": "[parameters('vmSize')]",
+            "customImageSubscription": "[subscription().subscriptionId]",
+            "customImageRG": "AzureTDRepos-DO_NOT_DELETE",
+            "virtualMachineSize": "Standard_DS2_v2",
             "imagePublisher": "Canonical",
             "imageOffer": "UbuntuServer",
             "ubuntuOSVersion": "16.04-LTS",
             "imageVersion": "latest",
+            "imagePublisherWindows":"MicrosoftWindowsServer",
+            "imageOfferWindows":"WindowsServer",
+            "windowsOSVersion":"2012-R2-Datacenter",
             "chefBEAvailName": "be-avail",
             "leadercomputerName": "be0",
             "followercomputerName1": "be1",
@@ -115,6 +121,8 @@
             "leaderExtensionName": "be0-ex0",
             "followerExtensionName1": "be-ex1",
             "followerExtensionName2": "be-ex2",
+            "wsVmName": "workstation",
+            "wsNic": "[variables('wsNic')]",
             "feComputerName0": "fe0",
             "feComputerName1": "fe1",
             "feComputerName2": "fe2",
@@ -158,6 +166,11 @@
             "wsSubnetPrefix": "10.0.2.0/24",
             "nodesSubnetName": "nodes-subnet",
             "nodesSubnetPrefix": "10.0.3.0/24",
+            "wsPip": "ws-client-pip",
+            "wsNsg": "ws-client-nsg",
+            "wsNic": "[variables('wsNic')]",
+            "publicIpAddressType": "Dynamic",
+            "wsClientDns": "[concat('wsclient',substring(variables('prefix') ,0 ,5))]",
             "publicIPAddressType": "Dynamic",
             "dnsLabelPrefixFE": "[concat(parameters('chefServerDnsPrefix'),substring(variables('prefix') ,0 ,3))]",
             "dnsLabelPrefixChefAuto": "[concat(parameters('chefAutomateDnsPrefix'),substring(variables('prefix') ,0 ,3))]",
@@ -175,11 +188,14 @@
         "be-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/be-networkInterfacesResource.json')]",
         "chefAuto-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/chefAuto-networkInterfacesResource.json')]",
         "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-',parameters('authenticationType'),'.json')]",
+        "workstationurl": "[concat(variables('baseURl'),'nested/chef-workstation.json')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('networkSettings').virtualNetworkName)]",
         "beSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').beSubnetName)]",
         "feSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').feSubnetName)]",
+        "wsSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').wsSubnetName)]",
         "felbPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('networkSettings').felbPublicIPAddressName)]",
         "chefAutoPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('networkSettings').chefAutoPublicIPAddressName)]",
+        "wsNic": "ws-client-nic",
         "deploymentApiVersion": "2015-01-01",
         "prefix": "[uniqueString(resourceGroup().id)]"
     },
@@ -472,6 +488,32 @@
                 "be-networkInterfacesResource",
                 "chefAuto-networkInterfacesResource"
             ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "workstation",
+            "apiVersion": "[variables('deploymentApiVersion')]",
+            "dependsOn": [
+                "virtualNetworksResource"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('workstationurl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "computeSettings": {
+                        "value": "[variables('computeSettings')]"
+                    },
+                    "networkSettings": {
+                        "value": "[variables('networksettings')]"
+                    },
+                    "wsSubnetRef": {
+                        "value": "[variables('wsSubnetRef')]"
+                    }
+                }
+            }
         }
     ],
     "outputs": {
