@@ -573,14 +573,6 @@
                             },
                             "secretName": "[variables('keyvaultSettings').objectid]"
                         }
-                    },
-                    "chefdeliverylicense": {
-                        "reference": {
-                            "keyVault": {
-                                "id": "[variables('keyvaultSettings').keyVaultId]"
-                            },
-                            "secretName": "[variables('keyvaultSettings').chefdeliverylicense]"
-                        }
                     }
                 }
             },
