@@ -183,5 +183,11 @@
                 }
             }
         }
-    ]
+    ],
+    "outputs": {
+         "chefworkstationfqdn":{
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').wsPip),'2015-06-15').dnsSettings.fqdn]"
+        }
+    }
 }
