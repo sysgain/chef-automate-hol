@@ -114,7 +114,7 @@
             "properties": {
                 "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(parameters('networkSettings').chefwsNodeDns,copyindex())]"
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,copyindex())]"
                 }
             }
         },
