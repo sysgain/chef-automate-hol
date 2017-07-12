@@ -281,7 +281,7 @@
         "felbPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('networkSettings').felbPublicIPAddressName)]",
         "chefAutoPublicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('networkSettings').chefAutoPublicIPAddressName)]",
         "linuxvmcount": 3,
-        "chefwsNodeNic": "chef-wsnodepip",
+        "chefwsNodeNic": "chef-wsnodenic",
         "chefenvNodesNic": "chef-envnodesnic",
         "wsNic": "ws-client-nic",
         "deploymentApiVersion": "2015-01-01",
