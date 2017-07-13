@@ -27,12 +27,49 @@
             }
         },
         {
+            "name": "[parameters('networkSettings').wsNodeNsg]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "winrm",
+                        "properties": {
+                            "priority": 102,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "5985",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "default-allow-rdp",
+                        "properties": {
+                            "priority": 1000,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "TCP",
+                            "destinationPortRange": "3389",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[parameters('networkSettings').chefwsNodeNic]",
             "location": "[parameters('networkSettings').location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/',parameters('networkSettings').chefwsNodePip)]"
+                "[concat('Microsoft.Network/publicIPAddresses/',parameters('networkSettings').chefwsNodePip)]",
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').wsNodeNsg)]"
             ],
             "properties": {
                 "ipConfigurations": [
@@ -48,7 +85,10 @@
                             }
                         }
                     }
-                ]
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSettings').wsNodeNsg)]"
+                }
             }
         },
         {
@@ -119,12 +159,40 @@
             }
         },
         {
+            "name": "[concat(parameters('networkSettings').envNodeNsg,copyindex())]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('networkSettings').linuxvmcount]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-admin",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('networkSettings').chefenvNodesNic,copyindex())]",
             "location": "[parameters('networkSettings').location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('networkSettings').chefEnvNodePip,copyindex())]"
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('networkSettings').chefEnvNodePip,copyindex())]",
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').envNodeNsg,copyindex())]"
             ],
             "copy": {
                 "name": "foo",
@@ -144,7 +212,10 @@
                             }
                         }
                     }
-                ]
+                ],
+                 "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('networkSettings').envNodeNsg,copyindex()))]"
+                }
             }
         },
         {
@@ -165,7 +236,7 @@
                 },
                 "osProfile": {
                     "computerName": "[concat(parameters('computeSettings').chefEnvNodesComputerName,copyindex())]",
-                     "adminUsername": "[parameters('computeSettings').nodesAdminUsername]",
+                    "adminUsername": "[parameters('computeSettings').nodesAdminUsername]",
                     "adminPassword": "[parameters('computeSettings').nodesAdminPassword]"
                 },
                 "storageProfile": {
