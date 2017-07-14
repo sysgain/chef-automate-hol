@@ -146,36 +146,36 @@
         {
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('networkSettings').chefEnvNodePip0)]",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,'0')]",
             "location": "[parameters('networkSettings').location]",
             "properties": {
                 "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns0)]"
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,'0')]"
                 }
             }
         },
         {
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('networkSettings').chefEnvNodePip1)]",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,'1')]",
             "location": "[parameters('networkSettings').location]",
             "properties": {
                 "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns1)]"
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,'1')]"
                 }
             }
         },
         {
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('networkSettings').chefEnvNodePip2)]",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,'2')]",
             "location": "[parameters('networkSettings').location]",
             "properties": {
                 "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns2)]"
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,'2')]"
                 }
             }
         },
@@ -291,15 +291,15 @@
         },
         "envnode0fqdn": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').chefEnvNodePip0),'2015-06-15').dnsSettings.fqdn]"
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('networkSettings').chefEnvNodePip,'0')),'2015-06-15').dnsSettings.fqdn]"
         },
         "envnode1fqdn": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').chefEnvNodePip1),'2015-06-15').dnsSettings.fqdn]"
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('networkSettings').chefEnvNodePip,'1')),'2015-06-15').dnsSettings.fqdn]"
         },
         "envnode2fqdn": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').chefEnvNodePip2),'2015-06-15').dnsSettings.fqdn]"
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('networkSettings').chefEnvNodePip,'2')),'2015-06-15').dnsSettings.fqdn]"
         }
     }
 }
