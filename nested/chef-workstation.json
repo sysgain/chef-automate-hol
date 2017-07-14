@@ -10,6 +10,24 @@
         },
         "wsSubnetRef": {
             "type": "string"
+        },
+        "workstationSetupUrl": {
+            "type": "string"
+        },
+        "chef-automate-fqdn": {
+            "type": "string"
+        },
+        "wsnodefqdn": {
+            "type": "string"
+        },
+        "envnode0fqdn": {
+            "type": "string"
+        },
+        "envnode1fqdn": {
+            "type": "string"
+        },
+        "envnode2fqdn": {
+            "type": "string"
         }
     },
     "variables": {},
@@ -162,7 +180,7 @@
                             "storageAccountType": "[parameters('computeSettings').storageAccountType]"
                         }
                     },
-                   "dataDisks": [
+                    "dataDisks": [
                         {
                             "name": "[concat(parameters('computeSettings').managedDiskName,'7')]",
                             "lun": 0,
@@ -182,10 +200,31 @@
                     ]
                 }
             }
+        },
+        {
+            "name": "[concat(parameters('computeSettings').wsVmName,'/workstation-setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('computeSettings').location]",
+            "apiVersion": "2016-04-30-preview",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[parameters('workstationSetupUrl')]"
+                    ],
+                    "commandToExecute": "[concat('powershell.exe -File workstation-setup.ps1', ' ', parameters('computeSettings').chefServerUserName, ' ', parameters('computeSettings').adminpassword, ' ', parameters('chef-automate-fqdn'), ' ', parameters('computeSettings').organizationName, ' ', parameters('computeSettings').nodesAdminUsername, ' ', parameters('computeSettings').wsAdminUsername, ' ', parameters('wsnodefqdn'), ' ', parameters('envnode0fqdn'), ' ', parameters('envnode1fqdn'), ' ', parameters('envnode2fqdn'))]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('computeSettings').wsVmName)]"
+            ]
         }
     ],
     "outputs": {
-         "chefworkstationfqdn":{
+        "chefworkstationfqdn": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').wsPip),'2015-06-15').dnsSettings.fqdn]"
         }
