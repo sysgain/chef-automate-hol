@@ -10,6 +10,9 @@
         },
         "nodesSubnetRef": {
             "type": "string"
+        },
+        "nodeSetupUrl":{
+            "type": "string"
         }
     },
     "variables": {},
@@ -142,6 +145,27 @@
                     ]
                 }
             }
+        },
+        {
+            "name": "[concat(parameters('computeSettings').ChefWSNodeComputerName,'/nodesetup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('computeSettings').location]",
+            "apiVersion": "2016-04-30-preview",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[parameters('nodeSetupUrl')]"
+                    ],
+                    "commandToExecute": "powershell.exe -File nodesetup.ps1"
+                                    }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('computeSettings').ChefWSNodeComputerName)]"
+            ]
         },
         {
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
