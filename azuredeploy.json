@@ -121,6 +121,7 @@
             "password": "password",
             "objectid": "objectid",
             "chefdeliverylicense": "chefdeliverylicense",
+            "chefautomatetoken": "chefautomatetoken",
             "chefsecrets": "[concat(resourceGroup().name,'chefsecrets')]",
             "chefdeliveryuserkey": "[concat(resourceGroup().name,'chefdeliveryuserkey')]",
             "chefdeliveryorgkey": "[concat(resourceGroup().name,'chefdeliveryorgkey')]",
@@ -213,7 +214,7 @@
             "beNsg": "be-nsg",
             "bePoolName1": "chef-ha-pool-fe",
             "bePoolName2": "chef-ha-pool-ssh-admin",
-            "felbPublicIPAddressName": "fe-pip",
+            "felbPublicIPAddressName": "lb-pip",
             "chefAutoPublicIPAddressName": "chefauto-pip",
             "virtualNetworkName": "chef-vnet",
             "addressPrefix": "10.0.0.0/16",
@@ -228,6 +229,8 @@
             "nodesSubnetPrefix": "10.0.3.0/24",
             "wsPip": "ws-client-pip",
             "wsNsg": "ws-client-nsg",
+            "wsNodeNsg": "chef-wsnodensg",
+            "envNodeNsg": "chef-envnodensg",
             "wsNic": "[variables('wsNic')]",
             "chefwsNodePip": "chef-wsnodepip",
             "chefwsNodeDns": "[concat('chefwsnode',substring(variables('prefix') ,0 ,5))]",
@@ -244,20 +247,21 @@
             "diagStorageAccName": "[concat('diagstr',substring(variables('prefix') ,0 ,5))]"
         },
         "chef_backend_install_script_base": "[concat('dbPassword=$1\n','replicationPassword=$2\n','clusterToken=$3\n','clusterName=$4\n','apt-get install -y apt-transport-https\n','wget -qO - https://downloads.chef.io/packages-chef-io-public.key | sudo apt-key add -\n','echo \"deb https://packages.chef.io/stable-apt trusty main\" > /etc/apt/sources.list.d/chef-stable.list\n','apt-get update\n','apt-get install -y chef-backend\n','apt-get install -y lvm2 xfsprogs sysstat atop\n','umount -f /mnt\n','pvcreate -f /dev/sdc\n','vgcreate chef-vg /dev/sdc\n','lvcreate -n chef-lv -l 80%VG chef-vg\n','mkfs.xfs /dev/chef-vg/chef-lv\n','mkdir -p /var/opt/chef-backend\n','mount /dev/chef-vg/chef-lv /var/opt/chef-backend\n','cat > /etc/chef-backend/chef-backend-secrets.json <<EOF\n','{\n','\"postgresql\": {\n','\"db_superuser_password\": \"######\",\n','\"replication_password\": \"#######\"\n','},\n','\"etcd\": {\n','\"initial_cluster_token\": \"########\"\n',' },\n','\"elasticsearch\": {\n','\"cluster_name\": \"#########\"\n','}\n','}\n','EOF\n','sed -i ''0,/######/s//''$dbPassword''/'' /etc/chef-backend/chef-backend-secrets.json\n','sed -i ''0,/#######/s//''$replicationPassword''/'' /etc/chef-backend/chef-backend-secrets.json\n','sed -i ''0,/########/s//''$clusterToken''/'' /etc/chef-backend/chef-backend-secrets.json\n','sed -i ''0,/#########/s//''$clusterName''/'' /etc/chef-backend/chef-backend-secrets.json\n','IP=`ifconfig eth0 | awk ''/inet addr/{print substr($2,6)}''`\n','cat > /etc/chef-backend/chef-backend.rb <<EOF\n','publish_address ''${IP}''\n','postgresql.log_min_duration_statement = 500\n','elasticsearch.heap_size = 3500\n','postgresql.md5_auth_cidr_addresses = [\"samehost\", \"samenet\", \"10.0.0.0/24\"]\n','EOF\n')]",
-        "chef_frontend_install_script_base": "[concat('dbPassword=$1\n','firstName=$2\n','lastName=$3\n','emailId=$4\n','organizationName=$5\n','appID=$6\n','tenantID=$7\n','password=$8\n','objectId=$9\n','keyVaultName=${10}\n','chefsecrets=${11}\n','chefdeliveryuserkey=${12}\n','chefdeliveryuserpassword=${13}\n','chefdeliveryorgkey=${14}\n','fqdn=`hostname -f`\n','apt-get install -y apt-transport-https\n','apt-get install -y sshpass\n','wget -qO - https://downloads.chef.io/packages-chef-io-public.key | sudo apt-key add -\n','echo \"deb https://packages.chef.io/stable-apt trusty main\" > /etc/apt/sources.list.d/chef-stable.list\n','apt-get update\n','apt-get install -y lvm2 xfsprogs sysstat atop\n','umount -f /mnt\n','pvcreate -f /dev/sdc\n','vgcreate chef-vg /dev/sdc\n','lvcreate -n chef-data -l 20%VG chef-vg\n','lvcreate -n chef-logs -l 80%VG chef-vg\n','mkfs.xfs /dev/chef-vg/chef-data\n','mkfs.xfs /dev/chef-vg/chef-logs\n','mkdir -p /var/opt/opscode\n','mkdir -p /var/log/opscode\n','mount /dev/chef-vg/chef-data /var/opt/opscode\n','mount /dev/chef-vg/chef-logs /var/log/opscode\n','apt-get install -y chef-server-core chef-manage\n','apt-get install -y libssl-dev libffi-dev python-dev build-essential\n','echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main\" > /etc/apt/sources.list.d/azure-cli.list\n','apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893\n','apt-get update\n','apt-get install azure-cli\n','cat > /etc/opscode/chef-server.rb <<EOF\n','\n','fqdn \"####\"\n','\n','use_chef_backend true\n','chef_backend_members [\"10.0.1.6\", \"10.0.1.5\", \"10.0.1.4\"]\n','\n','haproxy[''remote_postgresql_port''] = 5432\n','haproxy[''remote_elasticsearch_port''] = 9200\n','\n','postgresql[''external''] = true\n','postgresql[''vip''] = ''127.0.0.1''\n','postgresql[''db_superuser''] = ''chef_pgsql''\n','postgresql[''db_superuser_password''] = ''######''\n','\n','opscode_solr4[''external''] = true\n','opscode_solr4[''external_url''] = ''http://127.0.0.1:9200''\n','opscode_erchef[''search_provider''] = ''elasticsearch''\n','opscode_erchef[''search_queue_mode''] = ''batch''\n','\n','bookshelf[''storage_type''] = :sql\n','\n','rabbitmq[''enable''] = false\n','rabbitmq[''management_enabled''] = false\n','rabbitmq[''queue_length_monitor_enabled''] = false\n','\n','opscode_expander[''enable''] = false\n','\n','dark_launch[''actions''] = false\n','\n','opscode_erchef[''nginx_bookshelf_caching''] = :on\n','opscode_erchef[''s3_url_expiry_window_size''] = ''50%''\n','opscode_erchef[''s3_url_expiry_window_size''] = ''100%''\n','license[''nodes''] = 999999\n','oc_chef_authz[''http_init_count''] = 100\n','oc_chef_authz[''http_max_count''] = 100\n','oc_chef_authz[''http_queue_max''] = 200\n','oc_bifrost[''db_pool_size''] = 20\n','oc_bifrost[''db_pool_queue_max''] = 40\n','oc_bifrost[''db_pooler_timeout''] = 2000\n','opscode_erchef[''depsolver_worker_count''] = 4\n','opscode_erchef[''depsolver_timeout''] = 20000\n','opscode_erchef[''db_pool_size''] = 20\n','opscode_erchef[''db_pool_queue_max''] = 40\n','opscode_erchef[''db_pooler_timeout''] = 2000\n','opscode_erchef[''authz_pooler_timeout''] = 2000\n','EOF\n','sed -i ''0,/######/s//''$dbPassword''/'' /etc/opscode/chef-server.rb\n','sed -i ''0,/####/s//''$fqdn''/'' /etc/opscode/chef-server.rb\n')]",
-        "chef_automate_install_script_base": "[concat('appID=$1\n','tenantID=$2\n','password=$3\n','objectId=$4\n','keyVaultName=$5\n','chefdeliveryuserkey=${6}\n','chefdeliverylicense=${7}\n','chefserverurl=${8}\n','chefautomatefqdn=${9}\n','enterpriseName=${10}\n','chefdeliveryorgkey=${11}\n','apt-get install -y libssl-dev libffi-dev python-dev build-essential\n','echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main\" > /etc/apt/sources.list.d/azure-cli.list\n','apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893\n','apt-get update\n','apt-get install azure-cli\n','apt-get install -y apt-transport-https\n','apt-get update\n','apt-get install -y sshpass\n','apt-get install -y wget\n','apt-get install -y lvm2 xfsprogs sysstat atop\n','umount -f /mnt\n','pvcreate -f /dev/sdc\n','vgcreate delivery-vg /dev/sdc\n','lvcreate -n delivery-lv -l 80%VG delivery-vg\n','mkfs.xfs /dev/delivery-vg/delivery-lv\n','mkdir -p /var/opt/delivery\n','mount /dev/delivery-vg/delivery-lv /var/opt/delivery\n','wget  https://packages.chef.io/files/stable/automate/0.7.239/ubuntu/16.04/automate_0.7.239-1_amd64.deb\n','dpkg -i automate_0.7.239-1_amd64.deb\n','az login --service-principal -u $appID --password $password --tenant $tenantID\n','echo $chefdeliveryuserkey > /tmp/chefdeliveryuserkey\n','echo $chefdeliverylicense > /tmp/deliverylicense\n','az keyvault secret download --file /etc/delivery/chefautomatedeliveryuser.pem --name $chefdeliveryuserkey --vault-name $keyVaultName\n','az keyvault secret download --file /etc/delivery/chef-automate-org-validator.pem --name $chefdeliveryorgkey --vault-name $keyVaultName\n','az keyvault secret download --file /etc/delivery/delivery.license --name $chefdeliverylicense --vault-name $keyVaultName\n','automate-ctl setup --license /etc/delivery/delivery.license --key /etc/delivery/chefautomatedeliveryuser.pem --server-url $chefserverurl --fqdn $chefautomatefqdn --enterprise $enterpriseName --configure --no-build-node\n','until (curl --insecure -D - https://localhost/api/_status) | grep \"200 OK\"; do sleep 15s; done\n','while (curl --insecure https://localhost/api/_status) | grep \"fail\"; do sleep 15s; done\n','automate-ctl create-user $enterpriseName delivery --password Password@1234 --roles \"admin\"\n')]",
+        "chef_frontend_install_script_base": "[concat('dbPassword=$1\n','firstName=$2\n','lastName=$3\n','emailId=$4\n','organizationName=$5\n','appID=$6\n','tenantID=$7\n','password=$8\n','objectId=$9\n','keyVaultName=${10}\n','chefsecrets=${11}\n','chefautomatefqdn=${12}\n','chefautomatetoken=${13}\n','chefdeliveryuserkey=${14}\n','chefdeliveryuserpassword=${15}\n','chefdeliveryorgkey=${16}\n','fqdn=`hostname -f`\n','apt-get install -y apt-transport-https\n','apt-get install -y sshpass\n','wget -qO - https://downloads.chef.io/packages-chef-io-public.key | sudo apt-key add -\n','echo \"deb https://packages.chef.io/stable-apt trusty main\" > /etc/apt/sources.list.d/chef-stable.list\n','apt-get update\n','apt-get install -y lvm2 xfsprogs sysstat atop\n','umount -f /mnt\n','pvcreate -f /dev/sdc\n','vgcreate chef-vg /dev/sdc\n','lvcreate -n chef-data -l 20%VG chef-vg\n','lvcreate -n chef-logs -l 80%VG chef-vg\n','mkfs.xfs /dev/chef-vg/chef-data\n','mkfs.xfs /dev/chef-vg/chef-logs\n','mkdir -p /var/opt/opscode\n','mkdir -p /var/log/opscode\n','mount /dev/chef-vg/chef-data /var/opt/opscode\n','mount /dev/chef-vg/chef-logs /var/log/opscode\n','apt-get install -y chef-server-core chef-manage\n','apt-get install -y libssl-dev libffi-dev python-dev build-essential\n','echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main\" > /etc/apt/sources.list.d/azure-cli.list\n','apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893\n','apt-get update\n','apt-get install azure-cli\n','cat > /etc/opscode/chef-server.rb <<EOF\n','\n','fqdn \"####\"\n','\n','use_chef_backend true\n','chef_backend_members [\"10.0.1.6\", \"10.0.1.5\", \"10.0.1.4\"]\n','data_collector[\"root_url\"] = \"https://$chefautomatefqdn/data-collector/v0/\"\n','data_collector[\"token\"] = \"$chefautomatetoken\"\n','\n','haproxy[''remote_postgresql_port''] = 5432\n','haproxy[''remote_elasticsearch_port''] = 9200\n','\n','postgresql[''external''] = true\n','postgresql[''vip''] = ''127.0.0.1''\n','postgresql[''db_superuser''] = ''chef_pgsql''\n','postgresql[''db_superuser_password''] = ''######''\n','\n','opscode_solr4[''external''] = true\n','opscode_solr4[''external_url''] = ''http://127.0.0.1:9200''\n','opscode_erchef[''search_provider''] = ''elasticsearch''\n','opscode_erchef[''search_queue_mode''] = ''batch''\n','\n','bookshelf[''storage_type''] = :sql\n','\n','rabbitmq[''enable''] = false\n','rabbitmq[''management_enabled''] = false\n','rabbitmq[''queue_length_monitor_enabled''] = false\n','\n','opscode_expander[''enable''] = false\n','\n','dark_launch[''actions''] = false\n','\n','opscode_erchef[''nginx_bookshelf_caching''] = :on\n','opscode_erchef[''s3_url_expiry_window_size''] = ''50%''\n','opscode_erchef[''s3_url_expiry_window_size''] = ''100%''\n','license[''nodes''] = 999999\n','oc_chef_authz[''http_init_count''] = 100\n','oc_chef_authz[''http_max_count''] = 100\n','oc_chef_authz[''http_queue_max''] = 200\n','oc_bifrost[''db_pool_size''] = 20\n','oc_bifrost[''db_pool_queue_max''] = 40\n','oc_bifrost[''db_pooler_timeout''] = 2000\n','opscode_erchef[''depsolver_worker_count''] = 4\n','opscode_erchef[''depsolver_timeout''] = 20000\n','opscode_erchef[''db_pool_size''] = 20\n','opscode_erchef[''db_pool_queue_max''] = 40\n','opscode_erchef[''db_pooler_timeout''] = 2000\n','opscode_erchef[''authz_pooler_timeout''] = 2000\n','EOF\n','sed -i ''0,/######/s//''$dbPassword''/'' /etc/opscode/chef-server.rb\n','sed -i ''0,/####/s//''$fqdn''/'' /etc/opscode/chef-server.rb\n')]",
+        "chef_automate_install_script_base": "[concat('appID=$1\n','tenantID=$2\n','password=$3\n','objectId=$4\n','keyVaultName=$5\n','chefdeliveryuserkey=${6}\n','chefdeliverylicense=${7}\n','chefserverurl=${8}\n','chefautomatefqdn=${9}\n','enterpriseName=${10}\n','chefdeliveryorgkey=${11}\n','chefautomatetoken=${12}\n','apt-get install -y libssl-dev libffi-dev python-dev build-essential\n','echo \"deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main\" > /etc/apt/sources.list.d/azure-cli.list\n','apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893\n','apt-get update\n','apt-get install azure-cli\n','apt-get install -y apt-transport-https\n','apt-get update\n','apt-get install -y sshpass\n','apt-get install -y wget\n','apt-get install -y lvm2 xfsprogs sysstat atop\n','umount -f /mnt\n','pvcreate -f /dev/sdc\n','vgcreate delivery-vg /dev/sdc\n','lvcreate -n delivery-lv -l 80%VG delivery-vg\n','mkfs.xfs /dev/delivery-vg/delivery-lv\n','mkdir -p /var/opt/delivery\n','mount /dev/delivery-vg/delivery-lv /var/opt/delivery\n','wget  https://packages.chef.io/files/stable/automate/0.7.239/ubuntu/16.04/automate_0.7.239-1_amd64.deb\n','dpkg -i automate_0.7.239-1_amd64.deb\n','az login --service-principal -u $appID --password $password --tenant $tenantID\n','echo $chefdeliveryuserkey > /tmp/chefdeliveryuserkey\n','echo $chefdeliverylicense > /tmp/deliverylicense\n','az keyvault secret download --file /etc/delivery/chefautomatedeliveryuser.pem --name $chefdeliveryuserkey --vault-name $keyVaultName\n','az keyvault secret download --file /etc/delivery/chef-automate-org-validator.pem --name $chefdeliveryorgkey --vault-name $keyVaultName\n','az keyvault secret download --file /etc/delivery/delivery.license --name $chefdeliverylicense --vault-name $keyVaultName\n','automate-ctl setup --license /etc/delivery/delivery.license --key /etc/delivery/chefautomatedeliveryuser.pem --server-url $chefserverurl --fqdn $chefautomatefqdn --enterprise $enterpriseName --configure --no-build-node\n','until (curl --insecure -D - https://localhost/api/_status) | grep \"200 OK\"; do sleep 15s; done\n','while (curl --insecure https://localhost/api/_status) | grep \"fail\"; do sleep 15s; done\n','automate-ctl create-user $enterpriseName delivery --password Password@1234 --roles \"admin\"\n','cat >> /etc/delivery/delivery.rb <<EOF\n','data_collector[''token''] = \"$chefautomatetoken\"\n','EOF\n')]",
         "scripts": {
             "chef_backend_install_script_leader": "[concat(variables('chef_backend_install_script_base'),'chef-backend-ctl create-cluster --accept-license --yes --quiet --verbose\n')]",
             "chef_backend_install_script_follower": "[concat(variables('chef_backend_install_script_base'),'chef-backend-ctl join-cluster 10.0.1.4 -s /etc/chef-backend/chef-backend-secrets.json --accept-license --yes --quiet --verbose\n')]",
-            "chef_frontend_install_script_fe0": "[concat(variables('chef_frontend_install_script_base'),'chef-server-ctl reconfigure --accept-license\n','sudo chef-manage-ctl reconfigure --accept-license\n','echo ''ENABLED=\"true\"'' > /etc/default/sysstat\n','service sysstat start\n','sleep 5\n','chef-server-ctl user-create delivery $firstName $lastName $emailId $password --filename /etc/opscode/chefautomatedeliveryuser.pem\n','sleep 5\n','sudo chef-server-ctl org-create $organizationName ''Chef Automate Org'' --file /etc/opscode/chef-automate-org-validator.pem -a delivery\n','sleep 5\n','az login --service-principal -u $appID --password $password --tenant $tenantID\n','if [ `echo $?` -eq 0 ]\n','then\n','echo \"uploading the secret files to keyvault\"\n','az keyvault secret set --name $chefsecrets --vault-name $keyVaultName --file /etc/opscode/private-chef-secrets.json\n','az keyvault secret set --name $chefdeliveryuserkey --vault-name $keyVaultName --file /etc/opscode/chefautomatedeliveryuser.pem\n','az keyvault secret set --name $chefdeliveryorgkey --vault-name $keyVaultName --file /etc/opscode/chef-automate-org-validator.pem\n','az keyvault secret set --name $chefdeliveryuserpassword --vault-name $keyVaultName --value $password\n','else\n','echo \"Authentication to Azure keyvault failed\"\n','fi\n')]",
-            "chef_frontend_install_script_fe": "[concat(variables('chef_frontend_install_script_base'),'az login --service-principal -u $appID --password $password --tenant $tenantID\n','az keyvault secret download --file /etc/opscode/private-chef-secrets.json --name $chefsecrets --vault-name $keyVaultName\n','mkdir -p /var/opt/opscode/upgrades/\n','touch /var/opt/opscode/bootstrapped\n','chef-server-ctl reconfigure --accept-license\n','sudo chef-manage-ctl reconfigure --accept-license\n','echo ''ENABLED=\"true\"'' > /etc/default/sysstat\n','service sysstat start\n')]"
+            "chef_frontend_install_script_fe0": "[concat(variables('chef_frontend_install_script_base'),'chef-server-ctl reconfigure --accept-license\n','sudo chef-manage-ctl reconfigure --accept-license\n','echo ''ENABLED=\"true\"'' > /etc/default/sysstat\n','service sysstat start\n','sleep 5\n','chef-server-ctl user-create delivery $firstName $lastName $emailId $password --filename /etc/opscode/chefautomatedeliveryuser.pem\n','sleep 5\n','sudo chef-server-ctl org-create $organizationName ''Chef Automate Org'' --file /etc/opscode/chef-automate-org-validator.pem -a delivery\n','sleep 5\n','az login --service-principal -u $appID --password $password --tenant $tenantID\n','if [ `echo $?` -eq 0 ]\n','then\n','echo \"uploading the secret files to keyvault\"\n','az keyvault secret set --name $chefsecrets --vault-name $keyVaultName --file /etc/opscode/private-chef-secrets.json\n','az keyvault secret set --name $chefdeliveryuserkey --vault-name $keyVaultName --file /etc/opscode/chefautomatedeliveryuser.pem\n','az keyvault secret set --name $chefdeliveryuserpassword --vault-name $keyVaultName --value $password\n','az keyvault secret set --name $chefdeliveryorgkey --vault-name $keyVaultName --file /etc/opscode/chef-automate-org-validator.pem\n','else\n','echo \"Authentication to Azure keyvault failed\"\n','fi\n')]",
+            "chef_frontend_install_script_fe": "[concat(variables('chef_frontend_install_script_base'),'az login --service-principal -u $appID --password $password --tenant $tenantID\n','az keyvault secret download --file /etc/opscode/private-chef-secrets.json --name $chefsecrets --vault-name $keyVaultName\n','mkdir -p /var/opt/opscode/upgrades/\n','touch /var/opt/opscode/bootstrapped\n','chef-server-ctl reconfigure --accept-license\n','sudo chef-manage-ctl reconfigure --accept-license\n','echo ''ENABLED=\"true\"'' > /etc/default/sysstat\n','service sysstat start\n')]",
+            "chef_automate_install_script": "[concat(variables('chef_automate_install_script_base'),'sudo automate-ctl reconfigure')]"
         },
         "customData": {
             "leaderCustomData": "[base64(concat('#cloud-config\n', '\n', 'write_files:\n', '-   encoding: b64\n', '    content: ', base64(variables('scripts').chef_backend_install_script_leader) , '\n', '    path: /etc/chef-backend/chef-backend-install.sh\n', '    permissions: 0700\n'))]",
             "followerCustomData": "[base64(concat('#cloud-config\n', '\n', 'write_files:\n', '-   encoding: b64\n', '    content: ', base64(variables('scripts').chef_backend_install_script_follower) , '\n', '    path: /etc/chef-backend/chef-backend-install.sh\n', '    permissions: 0700\n'))]",
             "fe0Customdata": "[base64(concat('#cloud-config\n', '\n', 'write_files:\n', '-   encoding: b64\n', '    content: ', base64(variables('scripts').chef_frontend_install_script_fe0) , '\n', '    path: /etc/opscode/chef-frontend-install.sh\n', '    permissions: 0700\n'))]",
             "feCustomData": "[base64(concat('#cloud-config\n', '\n', 'write_files:\n', '-   encoding: b64\n', '    content: ', base64(variables('scripts').chef_frontend_install_script_fe) , '\n', '    path: /etc/opscode/chef-frontend-install.sh\n', '    permissions: 0700\n'))]",
-            "automateCustomData": "[base64(concat('#cloud-config\n', '\n', 'write_files:\n', '-   encoding: b64\n', '    content: ', base64(variables('chef_automate_install_script_base')) , '\n', '    path: /etc/delivery/chef-automate-install.sh\n', '    permissions: 0700\n'))]"
+            "automateCustomData": "[base64(concat('#cloud-config\n', '\n', 'write_files:\n', '-   encoding: b64\n', '    content: ', base64(variables('scripts').chef_automate_install_script) , '\n', '    path: /etc/delivery/chef-automate-install.sh\n', '    permissions: 0700\n'))]"
         },
         "baseURl": "https://raw.githubusercontent.com/sysgain/chef-automate-hol/master/",
         "managedDisksResourcesURL": "[concat(variables('baseURl'),'nested/managedDisksResource.json')]",
@@ -273,6 +277,8 @@
         "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-password.json')]",
         "workstationurl": "[concat(variables('baseURl'),'nested/chef-workstation.json')]",
         "chef-nodesUrl": "[concat(variables('baseURl'),'nested/chef-nodes.json')]",
+        "workstationSetupUrl": "[concat(variables('baseURl'),'scripts/workstation-setup.ps1')]",
+        "nodeSetupUrl": "[concat(variables('baseURl'),'scripts/nodesetup.ps1')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('networkSettings').virtualNetworkName)]",
         "beSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').beSubnetName)]",
         "feSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').feSubnetName)]",
@@ -582,6 +588,14 @@
                             },
                             "secretName": "[variables('keyvaultSettings').objectid]"
                         }
+                    },
+                    "chefautomatetoken": {
+                        "reference": {
+                            "keyVault": {
+                                "id": "[variables('keyvaultSettings').keyVaultId]"
+                            },
+                            "secretName": "[variables('keyvaultSettings').chefautomatetoken]"
+                        }
                     }
                 }
             },
@@ -599,7 +613,9 @@
             "name": "chef-workstation",
             "apiVersion": "[variables('deploymentApiVersion')]",
             "dependsOn": [
-                "virtualNetworksResource"
+                "virtualNetworksResource",
+                "fe-be-virtualMachinesWithExtensions",
+                "chef-nodes"
             ],
             "properties": {
                 "mode": "incremental",
@@ -616,6 +632,24 @@
                     },
                     "wsSubnetRef": {
                         "value": "[variables('wsSubnetRef')]"
+                    },
+                    "workstationSetupUrl": {
+                        "value": "[variables('workstationSetupUrl')]"
+                    },
+                    "chef-server-fqdn": {
+                        "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
+                    },
+                    "wsnodefqdn": {
+                        "value": "[reference('chef-nodes').outputs.wsnodefqdn.value]"
+                    },
+                    "envnode0fqdn": {
+                        "value": "[reference('chef-nodes').outputs.envnode0fqdn.value]"
+                    },
+                    "envnode1fqdn": {
+                        "value": "[reference('chef-nodes').outputs.envnode1fqdn.value]"
+                    },
+                    "envnode2fqdn": {
+                        "value": "[reference('chef-nodes').outputs.envnode2fqdn.value]"
                     }
                 }
             }
@@ -642,6 +676,9 @@
                     },
                     "nodesSubnetRef": {
                         "value": "[variables('nodesSubnetRef')]"
+                    },
+                    "nodeSetupUrl":{
+                        "value": "[variables('nodeSetupUrl')]"
                     }
                 }
             }
@@ -687,6 +724,22 @@
         "chef-automate-fqdn": {
             "type": "string",
             "value": "[reference('publicIPAddressesResource').outputs.chefAutomatefqdn.value]"
+        },
+        "wsnodefqdn": {
+            "type": "string",
+            "value": "[reference('chef-nodes').outputs.wsnodefqdn.value]"
+        },
+        "envnode0fqdn": {
+            "type": "string",
+            "value": "[reference('chef-nodes').outputs.envnode0fqdn.value]"
+        },
+        "envnode1fqdn": {
+            "type": "string",
+            "value": "[reference('chef-nodes').outputs.envnode1fqdn.value]"
+        },
+        "envnode2fqdn": {
+            "type": "string",
+            "value": "[reference('chef-nodes').outputs.envnode2fqdn.value]"
         }
     }
 }
