@@ -11,7 +11,7 @@
         "nodesSubnetRef": {
             "type": "string"
         },
-        "nodeSetupUrl":{
+        "nodeSetupUrl": {
             "type": "string"
         }
     },
@@ -131,7 +131,6 @@
                             "caching": "None",
                             "createOption": "Attach",
                             "managedDisk": {
-                                
                                 "id": "[resourceId('Microsoft.Compute/disks',concat(parameters('computeSettings').managedDiskName,'8'))]"
                             }
                         }
@@ -159,9 +158,11 @@
                 "settings": {
                     "fileUris": [
                         "[parameters('nodeSetupUrl')]"
-                    ],
-                    "commandToExecute": "powershell.exe -File nodesetup.ps1"
-                                    }
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat ('powershell -ExecutionPolicy Unrestricted -File nodesetup.ps1')]"
+                }
             },
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', parameters('computeSettings').ChefWSNodeComputerName)]"
