@@ -16,11 +16,10 @@ Invoke-WebRequest -Uri https://the.earth.li/~sgtatham/putty/latest/w64/putty-64b
 Start-Process c:/Users/Putty.msi   /qn -Wait
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned  -Force
 chef generate app c:\Users\chef-repo
-echo c:\Users\chef-repo\.chef\knife.rb | knife configure --server-url https://$ChefServerFqdn/organizations/$orguser/ --validation-client-name $orguser-validator --validation-key c:/Users/chef-repo/.chef/$orguser-validator.pem --user $chefServerUserName --repository c:/Users/chef-repo
+echo c:\Users\chef-repo\.chef\knife.rb | knife configure --server-url https://$ChefServerFqdn/organizations/$organizationName/ --validation-client-name $organizationName-validator --validation-key c:/Users/chef-repo/.chef/$organizationName-validator.pem --user $chefServerUserName --repository c:/Users/chef-repo
 echo n | & "C:\Program Files\PuTTY\pscp.exe"  -scp -pw $adminPassword chefuser@$ChefServerFqdn:/etc/opscode/chefautomatedeliveryuser.pem C:\Users\chef-repo\.chef\$chefServerUserName".pem"
-echo n | & "C:\Program Files\PuTTY\pscp.exe"  -scp -pw $adminPassword chefuser@$ChefServerFqdn:/etc/opscode/chef-automate-org-validator.pem C:\Users\chef-repo\.chef\$orguser".pem"
-knife ssl fetch --config c:\Users\chef-repo\.chef\knife.rb https://$ChefServerFqdn/organizations/$orguser
+echo n | & "C:\Program Files\PuTTY\pscp.exe"  -scp -pw $adminPassword chefuser@$ChefServerFqdn:/etc/opscode/chef-automate-org-validator.pem C:\Users\chef-repo\.chef\$organizationName".pem"
 knife bootstrap windows winrm $wsNodeFqdn --config c:\Users\chef-repo\.chef\knife.rb -x $wsAdminUsername -P $adminPassword -N chefwsnode --node-ssl-verify-mode none
-knife bootstrap $envNode0Fqdn --sudo -x $nodesAdminUsername -P $adminPassword -N chefenvnode0 --node-ssl-verify-mode none
-knife bootstrap $envNode1Fqdn --sudo -x $nodesAdminUsername -P $adminPassword -N chefenvnode1 --node-ssl-verify-mode none
-knife bootstrap $envNode2Fqdn --sudo -x $nodesAdminUsername -P $adminPassword -N chefenvnode2 --node-ssl-verify-mode none
+knife bootstrap $envNode0Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefenvnode0 --node-ssl-verify-mode none
+knife bootstrap $envNode1Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefenvnode1 --node-ssl-verify-mode none
+knife bootstrap $envNode2Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefenvnode2 --node-ssl-verify-mode none
