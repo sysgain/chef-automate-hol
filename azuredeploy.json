@@ -105,6 +105,18 @@
             "metadata": {
                 "description": "KeyVault Resource Group"
             }
+        },
+        "customImageSubscription":{
+            "type": "string",
+            "defaultValue": "086ef973-2199-477b-9b40-c3d05c01a287"
+        },
+        "customImageRG":{
+            "type": "string",
+            "defaultValue": "chef-automate-hol(DO-NOT-DELETE)"
+        },
+        "imageID":{
+            "type": "string",
+            "defaultValue": "chefworkstation-image-20170716205543"
         }
     },
     "variables": {
@@ -129,6 +141,9 @@
         },
         "computeSettings": {
             "count": 9,
+            "customImageSubscription":"[parameters('customImageSubscription')]",
+            "customImageRG":"[parameters('customImageRG')]",
+            "imageID":"[parameters('imageID')]",
             "location": "[resourceGroup().location]",
             "computeApiVersion": "2016-04-30-preview",
             "adminUsername": "[parameters('adminUsername')]",
@@ -276,8 +291,9 @@
         "chefAuto-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/chefAuto-networkInterfacesResource.json')]",
         "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-password.json')]",
         "workstationurl": "[concat(variables('baseURl'),'nested/chef-workstation.json')]",
-        "workstationextensionurl":"[concat(variables('baseURl'),'nested/workstation-extension.json')]",
+        "workstationextensionurl": "[concat(variables('baseURl'),'nested/workstation-extension.json')]",
         "chef-nodesUrl": "[concat(variables('baseURl'),'nested/chef-nodes.json')]",
+        "workstationSetupUrl": "[concat(variables('baseURl'),'scripts/workstation-setup.ps1')]",
         "workstationSetupUrl1": "[concat(variables('baseURl'),'scripts/workstation-setup1.ps1')]",
         "workstationSetupUrl2": "[concat(variables('baseURl'),'scripts/workstation-setup2.ps1')]",
         "nodeSetupUrl": "[concat(variables('baseURl'),'scripts/nodesetup.ps1')]",
@@ -633,7 +649,7 @@
                     "nodesSubnetRef": {
                         "value": "[variables('nodesSubnetRef')]"
                     },
-                    "nodeSetupUrl":{
+                    "nodeSetupUrl": {
                         "value": "[variables('nodeSetupUrl')]"
                     }
                 }
@@ -664,31 +680,8 @@
                     "wsSubnetRef": {
                         "value": "[variables('wsSubnetRef')]"
                     },
-                    "workstationSetupUrl1": {
-                        "value": "[variables('workstationSetupUrl1')]"
-                    }
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Resources/deployments",
-            "name": "workstation-extension",
-            "apiVersion": "[variables('deploymentApiVersion')]",
-            "dependsOn": [
-                "chef-workstation"
-            ],
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[variables('workstationextensionurl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "computeSettings": {
-                        "value": "[variables('computeSettings')]"
-                    },
-                    "workstationSetupUrl2": {
-                        "value": "[variables('workstationSetupUrl2')]"
+                    "workstationSetupUrl": {
+                        "value": "[variables('workstationSetupUrl')]"
                     },
                     "chef-server-fqdn": {
                         "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
