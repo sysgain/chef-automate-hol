@@ -111,6 +111,9 @@
                     "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
                     "adminPassword": "[parameters('computeSettings').wsAdminPassword]"
                 },
+                "windowsConfiguration": {
+                    "enableAutomaticUpdates": false
+                },
                 "storageProfile": {
                     "imageReference": {
                         "publisher": "[parameters('computeSettings').imagePublisherWindows]",
