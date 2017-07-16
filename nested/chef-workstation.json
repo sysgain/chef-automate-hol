@@ -11,22 +11,7 @@
         "wsSubnetRef": {
             "type": "string"
         },
-        "workstationSetupUrl": {
-            "type": "string"
-        },
-        "chef-server-fqdn": {
-            "type": "string"
-        },
-        "wsnodefqdn": {
-            "type": "string"
-        },
-        "envnode0fqdn": {
-            "type": "string"
-        },
-        "envnode1fqdn": {
-            "type": "string"
-        },
-        "envnode2fqdn": {
+        "workstationSetupUrl1": {
             "type": "string"
         }
     },
@@ -213,9 +198,11 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[parameters('workstationSetupUrl')]"
-                    ],
-                    "commandToExecute": "[concat('powershell.exe -File workstation-setup.ps1', ' ', parameters('computeSettings').chefServerUserName, ' ', parameters('computeSettings').adminpassword, ' ', parameters('chef-server-fqdn'), ' ', parameters('computeSettings').organizationName, ' ', parameters('computeSettings').nodesAdminUsername, ' ', parameters('computeSettings').wsAdminUsername, ' ', parameters('wsnodefqdn'), ' ', parameters('envnode0fqdn'), ' ', parameters('envnode1fqdn'), ' ', parameters('envnode2fqdn'))]"
+                        "[parameters('workstationSetupUrl1')]"
+                    ]
+                },
+                "protectedSettings": {
+                     "commandToExecute":  "powershell -ExecutionPolicy Unrestricted -File workstation-setup1.ps1"
                 }
             },
             "dependsOn": [
