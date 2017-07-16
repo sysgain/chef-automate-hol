@@ -109,10 +109,11 @@
                 "osProfile": {
                     "computerName": "[parameters('computeSettings').ChefWSNodeComputerName]",
                     "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
-                    "adminPassword": "[parameters('computeSettings').wsAdminPassword]"
-                },
-                "windowsConfiguration": {
-                    "enableAutomaticUpdates": false
+                    "adminPassword": "[parameters('computeSettings').wsAdminPassword]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true,
+                        "enableAutomaticUpdates": false
+                    }
                 },
                 "storageProfile": {
                     "imageReference": {
