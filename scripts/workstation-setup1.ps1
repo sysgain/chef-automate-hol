@@ -5,4 +5,4 @@ setx PATH "$env:path;C:\opscode\chefDK\embedded\bin\" -m
 Invoke-WebRequest -Uri https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.70-installer.msi -OutFile c:/users/Putty.msi 
 Start-Process c:/Users/Putty.msi   /qn -Wait
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned  -Force
-Restart-computer workstation
+Restart-Computer workstation
