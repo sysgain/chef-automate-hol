@@ -170,7 +170,7 @@
                 },
                 "storageProfile": {
                     "imageReference": {
-                        "id": "[concat('/subscriptions/',parameters('computeSettings').customImageSubscription,'/resourceGroups/',parameters('computeSettings').customImageRG,'/providers/Microsoft.Compute/images/',parameters('computeSettings').imageID)]"
+                        "id": "/subscriptions/086ef973-2199-477b-9b40-c3d05c01a287/resourceGroups/chef-automate-hol(DO-NOT-DELETE)/providers/Microsoft.Compute/images/chefworkstation-image-20170716205543"
                     },
                     "osDisk": {
                         "createOption": "fromImage",
