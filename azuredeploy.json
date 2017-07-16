@@ -276,8 +276,10 @@
         "chefAuto-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/chefAuto-networkInterfacesResource.json')]",
         "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-password.json')]",
         "workstationurl": "[concat(variables('baseURl'),'nested/chef-workstation.json')]",
+        "workstationextensionurl":"[concat(variables('baseURl'),'nested/workstation-extension.json')]",
         "chef-nodesUrl": "[concat(variables('baseURl'),'nested/chef-nodes.json')]",
-        "workstationSetupUrl": "[concat(variables('baseURl'),'scripts/workstation-setup.ps1')]",
+        "workstationSetupUrl1": "[concat(variables('baseURl'),'scripts/workstation-setup1.ps1')]",
+        "workstationSetupUrl2": "[concat(variables('baseURl'),'scripts/workstation-setup2.ps1')]",
         "nodeSetupUrl": "[concat(variables('baseURl'),'scripts/nodesetup.ps1')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('networkSettings').virtualNetworkName)]",
         "beSubnetRef": "[concat(variables('vnetID'),'/subnets/',variables('networkSettings').beSubnetName)]",
@@ -610,52 +612,6 @@
         },
         {
             "type": "Microsoft.Resources/deployments",
-            "name": "chef-workstation",
-            "apiVersion": "[variables('deploymentApiVersion')]",
-            "dependsOn": [
-                "virtualNetworksResource",
-                "fe-be-virtualMachinesWithExtensions",
-                "chef-nodes"
-            ],
-            "properties": {
-                "mode": "incremental",
-                "templateLink": {
-                    "uri": "[variables('workstationurl')]",
-                    "contentVersion": "1.0.0.0"
-                },
-                "parameters": {
-                    "computeSettings": {
-                        "value": "[variables('computeSettings')]"
-                    },
-                    "networkSettings": {
-                        "value": "[variables('networksettings')]"
-                    },
-                    "wsSubnetRef": {
-                        "value": "[variables('wsSubnetRef')]"
-                    },
-                    "workstationSetupUrl": {
-                        "value": "[variables('workstationSetupUrl')]"
-                    },
-                    "chef-server-fqdn": {
-                        "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
-                    },
-                    "wsnodefqdn": {
-                        "value": "[reference('chef-nodes').outputs.wsnodefqdn.value]"
-                    },
-                    "envnode0fqdn": {
-                        "value": "[reference('chef-nodes').outputs.envnode0fqdn.value]"
-                    },
-                    "envnode1fqdn": {
-                        "value": "[reference('chef-nodes').outputs.envnode1fqdn.value]"
-                    },
-                    "envnode2fqdn": {
-                        "value": "[reference('chef-nodes').outputs.envnode2fqdn.value]"
-                    }
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Resources/deployments",
             "name": "chef-nodes",
             "apiVersion": "[variables('deploymentApiVersion')]",
             "dependsOn": [
@@ -679,6 +635,75 @@
                     },
                     "nodeSetupUrl":{
                         "value": "[variables('nodeSetupUrl')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "chef-workstation",
+            "apiVersion": "[variables('deploymentApiVersion')]",
+            "dependsOn": [
+                "virtualNetworksResource",
+                "fe-be-virtualMachinesWithExtensions",
+                "chef-nodes"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('workstationurl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "computeSettings": {
+                        "value": "[variables('computeSettings')]"
+                    },
+                    "networkSettings": {
+                        "value": "[variables('networksettings')]"
+                    },
+                    "wsSubnetRef": {
+                        "value": "[variables('wsSubnetRef')]"
+                    },
+                    "workstationSetupUrl1": {
+                        "value": "[variables('workstationSetupUrl1')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "workstation-extension",
+            "apiVersion": "[variables('deploymentApiVersion')]",
+            "dependsOn": [
+                "chef-workstation"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('workstationextensionurl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "computeSettings": {
+                        "value": "[variables('computeSettings')]"
+                    },
+                    "workstationSetupUrl2": {
+                        "value": "[variables('workstationSetupUrl2')]"
+                    },
+                    "chef-server-fqdn": {
+                        "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
+                    },
+                    "wsnodefqdn": {
+                        "value": "[reference('chef-nodes').outputs.wsnodefqdn.value]"
+                    },
+                    "envnode0fqdn": {
+                        "value": "[reference('chef-nodes').outputs.envnode0fqdn.value]"
+                    },
+                    "envnode1fqdn": {
+                        "value": "[reference('chef-nodes').outputs.envnode1fqdn.value]"
+                    },
+                    "envnode2fqdn": {
+                        "value": "[reference('chef-nodes').outputs.envnode2fqdn.value]"
                     }
                 }
             }
