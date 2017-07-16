@@ -146,11 +146,9 @@
                     "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
                     "adminPassword": "[parameters('computeSettings').wsAdminPassword]",
                     "windowsConfiguration": {
-                        "provisionVmAgent": true
+                        "provisionVmAgent": true,
+                        "enableAutomaticUpdates": false
                     }
-                },
-                "windowsConfiguration": {
-                    "enableAutomaticUpdates": false
                 },
                 "hardwareProfile": {
                     "vmSize": "[parameters('computeSettings').virtualMachineSize]"
