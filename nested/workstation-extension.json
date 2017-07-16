@@ -39,7 +39,9 @@
                 "settings": {
                     "fileUris": [
                         "[parameters('workstationSetupUrl2')]"
-                    ],
+                    ]
+                },
+                "protectedSettings": {
                     "commandToExecute": "[concat('powershell.exe -File workstation-setup2.ps1', ' ', parameters('computeSettings').chefServerUserName, ' ', parameters('computeSettings').adminpassword, ' ', parameters('chef-server-fqdn'), ' ', parameters('computeSettings').organizationName, ' ', parameters('computeSettings').nodesAdminUsername, ' ', parameters('computeSettings').wsAdminUsername, ' ', parameters('wsnodefqdn'), ' ', parameters('envnode0fqdn'), ' ', parameters('envnode1fqdn'), ' ', parameters('envnode2fqdn'))]"
                 }
             }
