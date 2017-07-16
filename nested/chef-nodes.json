@@ -6,62 +6,36 @@
             "type": "secureObject"
         },
         "computeSettings": {
-            "type": "object"
+            "type": "secureObject"
         },
-        "wsSubnetRef": {
+        "nodesSubnetRef": {
             "type": "string"
         },
-        "workstationSetupUrl1": {
+        "nodeSetupUrl": {
             "type": "string"
         }
     },
     "variables": {},
     "resources": [
         {
-            "name": "[parameters('networkSettings').wsPip]",
-            "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('networkSettings').chefwsNodePip]",
             "location": "[parameters('networkSettings').location]",
             "properties": {
-                "publicIpAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
                 "dnsSettings": {
-                    "domainNameLabel": "[parameters('networkSettings').wsClientDns]"
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefwsNodeDns)]"
                 }
             }
         },
         {
-            "name": "[parameters('networkSettings').wsNsg]",
+            "name": "[parameters('networkSettings').wsNodeNsg]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
             "location": "[parameters('networkSettings').location]",
             "properties": {
                 "securityRules": [
-                    {
-                        "name": "https",
-                        "properties": {
-                            "priority": 100,
-                            "sourceAddressPrefix": "*",
-                            "protocol": "*",
-                            "destinationPortRange": "443",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*"
-                        }
-                    },
-                    {
-                        "name": "http",
-                        "properties": {
-                            "priority": 101,
-                            "sourceAddressPrefix": "*",
-                            "protocol": "*",
-                            "destinationPortRange": "80",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*"
-                        }
-                    },
                     {
                         "name": "winrm",
                         "properties": {
@@ -71,19 +45,6 @@
                             "destinationPortRange": "5985",
                             "access": "Allow",
                             "direction": "Inbound",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*"
-                        }
-                    },
-                    {
-                        "name": "httpsout",
-                        "properties": {
-                            "priority": 1070,
-                            "sourceAddressPrefix": "*",
-                            "protocol": "TCP",
-                            "destinationPortRange": "443",
-                            "access": "Allow",
-                            "direction": "Outbound",
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "*"
                         }
@@ -105,53 +66,54 @@
             }
         },
         {
-            "name": "[parameters('networkSettings').wsNic]",
-            "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[parameters('networkSettings').chefwsNodeNic]",
             "location": "[parameters('networkSettings').location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').wsNsg)]"
+                "[concat('Microsoft.Network/publicIPAddresses/',parameters('networkSettings').chefwsNodePip)]",
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').wsNodeNsg)]"
             ],
             "properties": {
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
-                            "subnet": {
-                                "id": "[parameters('wsSubnetRef')]"
-                            },
                             "privateIPAllocationMethod": "Dynamic",
-                            "publicIpAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('networkSettings').wsPip)]"
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').chefwsNodePip)]"
+                            },
+                            "subnet": {
+                                "id": "[parameters('nodesSubnetRef')]"
                             }
                         }
                     }
                 ],
                 "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSettings').wsNsg)]"
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSettings').wsNodeNsg)]"
                 }
             }
         },
         {
-            "name": "[parameters('computeSettings').wsVmName]",
-            "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "[parameters('computeSettings').computeApiVersion]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('computeSettings').ChefWSNodeComputerName]",
             "location": "[parameters('computeSettings').location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/',parameters('networkSettings').wsNic)]"
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkSettings').chefwsNodeNic)]"
             ],
             "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('computeSettings').chefWSNodeVmSize]"
+                },
                 "osProfile": {
-                    "computerName": "[parameters('computeSettings').wsVmName]",
+                    "computerName": "[parameters('computeSettings').ChefWSNodeComputerName]",
                     "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
                     "adminPassword": "[parameters('computeSettings').wsAdminPassword]",
                     "windowsConfiguration": {
                         "provisionVmAgent": true,
                         "enableAutomaticUpdates": false
                     }
-                },
-                "hardwareProfile": {
-                    "vmSize": "[parameters('computeSettings').virtualMachineSize]"
                 },
                 "storageProfile": {
                     "imageReference": {
@@ -168,12 +130,12 @@
                     },
                     "dataDisks": [
                         {
-                            "name": "[concat(parameters('computeSettings').managedDiskName,'7')]",
+                            "name": "[concat(parameters('computeSettings').managedDiskName,'8')]",
                             "lun": 0,
                             "caching": "None",
                             "createOption": "Attach",
                             "managedDisk": {
-                                "id": "[resourceId('Microsoft.Compute/disks',concat(parameters('computeSettings').managedDiskName,'7'))]"
+                                "id": "[resourceId('Microsoft.Compute/disks',concat(parameters('computeSettings').managedDiskName,'8'))]"
                             }
                         }
                     ]
@@ -181,14 +143,14 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('computeSettings').wsNic)]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',parameters('computeSettings').chefwsNodeNic)]"
                         }
                     ]
                 }
             }
         },
         {
-            "name": "[concat(parameters('computeSettings').wsVmName,'/workstation-setup')]",
+            "name": "[concat(parameters('computeSettings').ChefWSNodeComputerName,'/nodesetup')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "location": "[parameters('computeSettings').location]",
             "apiVersion": "2016-04-30-preview",
@@ -199,22 +161,174 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[parameters('workstationSetupUrl1')]"
+                        "[parameters('nodeSetupUrl')]"
                     ]
                 },
                 "protectedSettings": {
-                    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File workstation-setup1.ps1"
+                    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File nodesetup.ps1"
                 }
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('computeSettings').wsVmName)]"
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('computeSettings').ChefWSNodeComputerName)]"
             ]
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,'0')]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,'0')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,'1')]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,'1')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(parameters('networkSettings').chefEnvNodePip,'2')]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(parameters('networkSettings').chefenvNodeDns,'2')]"
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('networkSettings').envNodeNsg,copyindex())]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('networkSettings').linuxvmcount]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-ssh-admin",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('networkSettings').chefenvNodesNic,copyindex())]",
+            "location": "[parameters('networkSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('networkSettings').chefEnvNodePip,copyindex())]",
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').envNodeNsg,copyindex())]"
+            ],
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('networkSettings').linuxvmcount]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(parameters('networkSettings').chefEnvNodePip,copyindex()))]"
+                            },
+                            "subnet": {
+                                "id": "[parameters('nodesSubnetRef')]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', concat(parameters('networkSettings').envNodeNsg,copyindex()))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "[parameters('computeSettings').computeApiVersion]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(parameters('computeSettings').chefEnvNodesComputerName,copyindex())]",
+            "location": "[parameters('computeSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkSettings').chefenvNodesNic,copyindex())]"
+            ],
+            "copy": {
+                "name": "foo",
+                "count": "[parameters('computeSettings').linuxvmcount]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('computeSettings').vmSizeChefEnvironmentNodes]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(parameters('computeSettings').chefEnvNodesComputerName,copyindex())]",
+                    "adminUsername": "[parameters('computeSettings').nodesAdminUsername]",
+                    "adminPassword": "[parameters('computeSettings').nodesAdminPassword]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('computeSettings').imagePublisherLinux]",
+                        "offer": "[parameters('computeSettings').imageOfferLinux]",
+                        "sku": "[parameters('computeSettings').ubuntuOSVersion]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('computeSettings').storageAccountType]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('networkSettings').chefenvNodesNic,copyindex()))]"
+                        }
+                    ]
+                }
+            }
         }
     ],
     "outputs": {
-        "chefworkstationfqdn": {
+        "wsnodefqdn": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').wsPip),'2015-06-15').dnsSettings.fqdn]"
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').chefwsNodePip),'2015-06-15').dnsSettings.fqdn]"
+        },
+        "envnode0fqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('networkSettings').chefEnvNodePip,'0')),'2015-06-15').dnsSettings.fqdn]"
+        },
+        "envnode1fqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('networkSettings').chefEnvNodePip,'1')),'2015-06-15').dnsSettings.fqdn]"
+        },
+        "envnode2fqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('networkSettings').chefEnvNodePip,'2')),'2015-06-15').dnsSettings.fqdn]"
         }
     }
 }
