@@ -92,7 +92,7 @@
                 "description": "keyvault name"
             }
         },
-        "keyVaultSubId": {
+        "subcriptionId": {
             "type": "string",
             "defaultValue": "086ef973-2199-477b-9b40-c3d05c01a287",
             "metadata": {
@@ -106,10 +106,6 @@
                 "description": "KeyVault Resource Group"
             }
         },
-        "customImageSubscription":{
-            "type": "string",
-            "defaultValue": "086ef973-2199-477b-9b40-c3d05c01a287"
-        },
         "customImageRG":{
             "type": "string",
             "defaultValue": "chef-automate-hol(DO-NOT-DELETE)"
@@ -122,7 +118,7 @@
     "variables": {
         "keyvaultSettings": {
             "keyVaultApiVersion": "2015-06-01",
-            "keyVaultId": "[concat('/subscriptions/',parameters('keyVaultSubId'),'/resourceGroups/',parameters('keyVaultRG'),'/providers/Microsoft.KeyVault/vaults/',parameters('keyVaultName'))]",
+            "keyVaultId": "[concat('/subscriptions/',parameters('subcriptionId'),'/resourceGroups/',parameters('keyVaultRG'),'/providers/Microsoft.KeyVault/vaults/',parameters('keyVaultName'))]",
             "keyVaultName": "keyvaultchefhol",
             "dbPassword": "dbPassword",
             "replicationPassword": "replicationPassword",
@@ -141,7 +137,7 @@
         },
         "computeSettings": {
             "count": 9,
-            "customImageSubscription":"[parameters('customImageSubscription')]",
+            "customImageSubscription":"[parameters('subcriptionId')]",
             "customImageRG":"[parameters('customImageRG')]",
             "imageID":"[parameters('imageID')]",
             "location": "[resourceGroup().location]",
@@ -160,8 +156,6 @@
             "diskCreateOption": "empty",
             "diskSizeGB": 50,
             "vmSize": "[parameters('vmSize')]",
-            "customImageSubscription": "[subscription().subscriptionId]",
-            "customImageRG": "AzureTDRepos-DO_NOT_DELETE",
             "virtualMachineSize": "Standard_DS2_v2",
             "imagePublisher": "Canonical",
             "imageOffer": "UbuntuServer",
