@@ -149,6 +149,9 @@
                         "provisionVmAgent": true
                     }
                 },
+                "windowsConfiguration": {
+                    "enableAutomaticUpdates": false
+                },
                 "hardwareProfile": {
                     "vmSize": "[parameters('computeSettings').virtualMachineSize]"
                 },
@@ -202,7 +205,7 @@
                     ]
                 },
                 "protectedSettings": {
-                     "commandToExecute":  "powershell -ExecutionPolicy Unrestricted -File workstation-setup1.ps1"
+                    "commandToExecute": "powershell -ExecutionPolicy Unrestricted -File workstation-setup1.ps1"
                 }
             },
             "dependsOn": [
