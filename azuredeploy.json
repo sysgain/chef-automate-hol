@@ -92,7 +92,7 @@
                 "description": "keyvault name"
             }
         },
-        "subcriptionId": {
+        "keyVaultSubId": {
             "type": "string",
             "defaultValue": "086ef973-2199-477b-9b40-c3d05c01a287",
             "metadata": {
@@ -105,20 +105,12 @@
             "metadata": {
                 "description": "KeyVault Resource Group"
             }
-        },
-        "customImageRG":{
-            "type": "string",
-            "defaultValue": "chef-automate-hol(DO-NOT-DELETE)"
-        },
-        "imageID":{
-            "type": "string",
-            "defaultValue": "chefworkstation-image-20170716205543"
         }
     },
     "variables": {
         "keyvaultSettings": {
             "keyVaultApiVersion": "2015-06-01",
-            "keyVaultId": "[concat('/subscriptions/',parameters('subcriptionId'),'/resourceGroups/',parameters('keyVaultRG'),'/providers/Microsoft.KeyVault/vaults/',parameters('keyVaultName'))]",
+            "keyVaultId": "[concat('/subscriptions/',parameters('keyVaultSubId'),'/resourceGroups/',parameters('keyVaultRG'),'/providers/Microsoft.KeyVault/vaults/',parameters('keyVaultName'))]",
             "keyVaultName": "keyvaultchefhol",
             "dbPassword": "dbPassword",
             "replicationPassword": "replicationPassword",
@@ -137,9 +129,6 @@
         },
         "computeSettings": {
             "count": 9,
-            "customImageSubscription":"[parameters('subcriptionId')]",
-            "customImageRG":"[parameters('customImageRG')]",
-            "imageID":"[parameters('imageID')]",
             "location": "[resourceGroup().location]",
             "computeApiVersion": "2016-04-30-preview",
             "adminUsername": "[parameters('adminUsername')]",
@@ -156,6 +145,8 @@
             "diskCreateOption": "empty",
             "diskSizeGB": 50,
             "vmSize": "[parameters('vmSize')]",
+            "customImageSubscription": "[subscription().subscriptionId]",
+            "customImageRG": "AzureTDRepos-DO_NOT_DELETE",
             "virtualMachineSize": "Standard_DS2_v2",
             "imagePublisher": "Canonical",
             "imageOffer": "UbuntuServer",
@@ -285,9 +276,8 @@
         "chefAuto-networkInterfacesResourcesURL": "[concat(variables('baseURl'),'nested/chefAuto-networkInterfacesResource.json')]",
         "fe-be-VmsWithExtensionsURL": "[concat(variables('baseURl'),'nested/fe-be-virtualmachines-with-extensions-password.json')]",
         "workstationurl": "[concat(variables('baseURl'),'nested/chef-workstation.json')]",
-        "workstationextensionurl": "[concat(variables('baseURl'),'nested/workstation-extension.json')]",
+        "workstationextensionurl":"[concat(variables('baseURl'),'nested/workstation-extension.json')]",
         "chef-nodesUrl": "[concat(variables('baseURl'),'nested/chef-nodes.json')]",
-        "workstationSetupUrl": "[concat(variables('baseURl'),'scripts/workstation-setup.ps1')]",
         "workstationSetupUrl1": "[concat(variables('baseURl'),'scripts/workstation-setup1.ps1')]",
         "workstationSetupUrl2": "[concat(variables('baseURl'),'scripts/workstation-setup2.ps1')]",
         "nodeSetupUrl": "[concat(variables('baseURl'),'scripts/nodesetup.ps1')]",
@@ -643,7 +633,7 @@
                     "nodesSubnetRef": {
                         "value": "[variables('nodesSubnetRef')]"
                     },
-                    "nodeSetupUrl": {
+                    "nodeSetupUrl":{
                         "value": "[variables('nodeSetupUrl')]"
                     }
                 }
@@ -654,9 +644,7 @@
             "name": "chef-workstation",
             "apiVersion": "[variables('deploymentApiVersion')]",
             "dependsOn": [
-                "virtualNetworksResource",
-                "fe-be-virtualMachinesWithExtensions",
-                "chef-nodes"
+                "virtualNetworksResource"
             ],
             "properties": {
                 "mode": "incremental",
@@ -674,8 +662,31 @@
                     "wsSubnetRef": {
                         "value": "[variables('wsSubnetRef')]"
                     },
-                    "workstationSetupUrl": {
-                        "value": "[variables('workstationSetupUrl')]"
+                    "workstationSetupUrl1": {
+                        "value": "[variables('workstationSetupUrl1')]"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "workstation-extension",
+            "apiVersion": "[variables('deploymentApiVersion')]",
+            "dependsOn": [
+               "fe-be-virtualMachinesWithExtensions"
+            ],
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[variables('workstationextensionurl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "computeSettings": {
+                        "value": "[variables('computeSettings')]"
+                    },
+                    "workstationSetupUrl2": {
+                        "value": "[variables('workstationSetupUrl2')]"
                     },
                     "chef-server-fqdn": {
                         "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
