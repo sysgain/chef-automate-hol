@@ -750,19 +750,19 @@
             "type": "string",
             "value": "[reference('publicIPAddressesResource').outputs.chefAutomatefqdn.value]"
         },
-        "wsnodefqdn": {
+        "chefwsNode": {
             "type": "string",
             "value": "[reference('chef-nodes').outputs.wsnodefqdn.value]"
         },
-        "envnode0fqdn": {
+        "chefEnvironmentNode0": {
             "type": "string",
             "value": "[reference('chef-nodes').outputs.envnode0fqdn.value]"
         },
-        "envnode1fqdn": {
+        "chefEnvironmentNode1": {
             "type": "string",
             "value": "[reference('chef-nodes').outputs.envnode1fqdn.value]"
         },
-        "envnode2fqdn": {
+        "chefEnvironmentNode2": {
             "type": "string",
             "value": "[reference('chef-nodes').outputs.envnode2fqdn.value]"
         }
