@@ -673,7 +673,9 @@
             "name": "workstation-extension",
             "apiVersion": "[variables('deploymentApiVersion')]",
             "dependsOn": [
-               "fe-be-virtualMachinesWithExtensions"
+               "fe-be-virtualMachinesWithExtensions",
+               "chef-nodes",
+               "chef-workstation"
             ],
             "properties": {
                 "mode": "incremental",
