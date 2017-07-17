@@ -1,0 +1,232 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "networkSettings": {
+            "type": "secureObject"
+        },
+        "computeSettings": {
+            "type": "object"
+        },
+        "wsSubnetRef": {
+            "type": "string"
+        },
+        "workstationSetupUrl": {
+            "type": "string"
+        },
+         "chef-server-fqdn": {
+            "type": "string"
+        },
+        "wsnodefqdn": {
+            "type": "string"
+        },
+        "envnode0fqdn": {
+            "type": "string"
+        },
+        "envnode1fqdn": {
+            "type": "string"
+        },
+        "envnode2fqdn": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('networkSettings').wsPip]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('networkSettings').publicIpAddressType]",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('networkSettings').wsClientDns]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('networkSettings').wsNsg]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "https",
+                        "properties": {
+                            "priority": 100,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "443",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "http",
+                        "properties": {
+                            "priority": 101,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "80",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "winrm",
+                        "properties": {
+                            "priority": 102,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "*",
+                            "destinationPortRange": "5985",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "httpsout",
+                        "properties": {
+                            "priority": 1070,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "TCP",
+                            "destinationPortRange": "443",
+                            "access": "Allow",
+                            "direction": "Outbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    },
+                    {
+                        "name": "default-allow-rdp",
+                        "properties": {
+                            "priority": 1000,
+                            "sourceAddressPrefix": "*",
+                            "protocol": "TCP",
+                            "destinationPortRange": "3389",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[parameters('networkSettings').wsNic]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "[parameters('networkSettings').networkApiVersion]",
+            "location": "[parameters('networkSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/',parameters('networkSettings').wsNsg)]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('wsSubnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('networkSettings').wsPip)]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSettings').wsNsg)]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('computeSettings').wsVmName]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "[parameters('computeSettings').computeApiVersion]",
+            "location": "[parameters('computeSettings').location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/',parameters('networkSettings').wsNic)]"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "[parameters('computeSettings').wsVmName]",
+                    "adminUsername": "[parameters('computeSettings').wsAdminUsername]",
+                    "adminPassword": "[parameters('computeSettings').wsAdminPassword]",
+                    "windowsConfiguration": {
+                        "provisionVmAgent": true,
+                        "enableAutomaticUpdates": false
+                    }
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('computeSettings').virtualMachineSize]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "id": "[concat('/subscriptions/',parameters('computeSettings').customImageSubscription,'/resourceGroups/',parameters('computeSettings').customImageRG,'/providers/Microsoft.Compute/images/',parameters('computeSettings').imageID)]"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('computeSettings').storageAccountType]"
+                        }
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "[concat(parameters('computeSettings').managedDiskName,'7')]",
+                            "lun": 0,
+                            "caching": "None",
+                            "createOption": "Attach",
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks',concat(parameters('computeSettings').managedDiskName,'7'))]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('computeSettings').wsNic)]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('computeSettings').wsVmName,'/workstation-setup')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "location": "[parameters('computeSettings').location]",
+            "apiVersion": "2016-04-30-preview",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.8",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[parameters('workstationSetupUrl')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell.exe -File workstation-setup.ps1', ' ', parameters('computeSettings').chefServerUserName, ' ', parameters('computeSettings').adminpassword, ' ', parameters('chef-server-fqdn'), ' ', parameters('computeSettings').organizationName, ' ', parameters('computeSettings').nodesAdminUsername, ' ', parameters('computeSettings').wsAdminUsername, ' ', parameters('wsnodefqdn'), ' ', parameters('envnode0fqdn'), ' ', parameters('envnode1fqdn'), ' ', parameters('envnode2fqdn'))]"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('computeSettings').wsVmName)]"
+            ]
+        }
+    ],
+    "outputs": {
+        "chefworkstationfqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',parameters('networkSettings').wsPip),'2015-06-15').dnsSettings.fqdn]"
+        }
+    }
+}
