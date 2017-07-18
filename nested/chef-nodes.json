@@ -293,7 +293,7 @@
                     "imageReference": {
                         "publisher": "[parameters('computeSettings').imagePublisherLinux]",
                         "offer": "[parameters('computeSettings').imageOfferLinux]",
-                        "sku": "[parameters('computeSettings').ubuntuOSVersion]",
+                        "sku": "[parameters('computeSettings').linuxsku]",
                         "version": "latest"
                     },
                     "osDisk": {
