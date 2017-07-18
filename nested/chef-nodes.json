@@ -310,6 +310,11 @@
                         }
                     ]
                 }
+            },
+            "plan": {
+                "name": "[parameters('computeSettings').linuxsku]",
+                "publisher": "[parameters('computeSettings').imagePublisherLinux]",
+                "product": "[parameters('computeSettings').imageOfferLinux]"
             }
         }
     ],
