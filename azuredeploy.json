@@ -710,29 +710,9 @@
         }
     ],
     "outputs": {
-        "adminusername": {
+        "chef-automate-fqdn": {
             "type": "string",
-            "value": "[variables('computeSettings').adminUsername]"
-        },
-        "chef-server-url": {
-            "type": "string",
-            "value": "[concat('https://',reference('publicIPAddressesResource').outputs.chefServerfqdn.value)]"
-        },
-        "chef-server-fqdn": {
-            "type": "string",
-            "value": "[reference('publicIPAddressesResource').outputs.chefServerfqdn.value]"
-        },
-        "chef-workstation-fqdn": {
-            "type": "string",
-            "value": "[reference('chef-workstation').outputs.chefworkstationfqdn.value]"
-        },
-        "chef-server-webLogin-userName": {
-            "type": "string",
-            "value": "[variables('computeSettings').chefServerUserName]"
-        },
-        "chef-server-webLogin-password": {
-            "type": "string",
-            "value": "[reference('fe-be-virtualMachinesWithExtensions').outputs.chefServerWebUIPassword.value]"
+            "value": "[reference('publicIPAddressesResource').outputs.chefAutomatefqdn.value]"
         },
         "chef-automate-url": {
             "type": "string",
@@ -746,25 +726,17 @@
             "type": "string",
             "value": "[variables('computeSettings').adminPassword]"
         },
-        "chef-automate-fqdn": {
+         "chef-workstation-fqdn": {
             "type": "string",
-            "value": "[reference('publicIPAddressesResource').outputs.chefAutomatefqdn.value]"
+            "value": "[reference('chef-workstation').outputs.chefworkstationfqdn.value]"
         },
-        "chefwsNode": {
-            "type": "string",
-            "value": "[reference('chef-nodes').outputs.wsnodefqdn.value]"
+        "workstationAdminUsername":{
+            "type":"string",
+            "value":"[parameters('wsAdminUsername')]"
         },
-        "chefEnvironmentNode0": {
-            "type": "string",
-            "value": "[reference('chef-nodes').outputs.envnode0fqdn.value]"
-        },
-        "chefEnvironmentNode1": {
-            "type": "string",
-            "value": "[reference('chef-nodes').outputs.envnode1fqdn.value]"
-        },
-        "chefEnvironmentNode2": {
-            "type": "string",
-            "value": "[reference('chef-nodes').outputs.envnode2fqdn.value]"
+        "workstationAdminPassword":{
+            "type":"string",
+            "value":"[parameters('wsAdminPassword')]"
         }
     }
 }
