@@ -1,0 +1,42 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "value": "chefuser"
+        },
+        "adminPassword": {
+            "value": "Password@1234"
+        },
+        "nodesAdminUsername": {
+            "value": "nodeuser"
+        },
+        "nodesAdminPassword": {
+            "value": "Password@1234"
+        },
+        "wsAdminUsername": {
+            "value": "windowsuser"
+        },
+        "wsAdminPassword": {
+            "value": "Password@1234"
+        },
+        "vmSize": {
+            "value": "Standard_DS2_v2"
+        },
+        "chefServerDnsPrefix": {
+            "value": "chefserver"
+        },
+        "chefAutomateDnsPrefix": {
+            "value": "chefautomate"
+        },
+        "keyVaultName": {
+            "value": "keyvaultchefhol"
+        },
+        "keyVaultSubId": {
+            "value": "086ef973-2199-477b-9b40-c3d05c01a287"
+        },
+        "keyVaultRG": {
+            "value": "keyvault-chefhol"
+        }
+    }
+}
