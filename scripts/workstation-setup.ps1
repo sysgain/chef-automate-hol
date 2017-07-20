@@ -19,7 +19,13 @@ echo c:\Users\chef-repo\.chef\knife.rb | knife configure --server-url https://$C
 Add-Content c:/users/chef-repo/.chef/knife.rb "`nssl_verify_mode    :verify_none"
 echo n | & "C:\Program Files\PuTTY\pscp.exe"  -scp -pw $adminPassword chefuser@${ChefServerFqdn}:/etc/opscode/chefautomatedeliveryuser.pem C:\Users\chef-repo\.chef\$chefServerUserName".pem"
 echo n | & "C:\Program Files\PuTTY\pscp.exe"  -scp -pw $adminPassword chefuser@${ChefServerFqdn}:/etc/opscode/chef-automate-org-validator.pem C:\Users\chef-repo\.chef\$organizationName".pem"
-knife bootstrap windows winrm $wsNodeFqdn --config c:\Users\chef-repo\.chef\knife.rb -x $wsAdminUsername -P $adminPassword -N chefwsnode --node-ssl-verify-mode none
-knife bootstrap $envNode0Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironmentNode0 --node-ssl-verify-mode none
-knife bootstrap $envNode1Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironmentNode1 --node-ssl-verify-mode none
-knife bootstrap $envNode2Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironmentNode2 --node-ssl-verify-mode none
+git clone https://github.com/sysgain/chef-automate-hol-cookbooks.git C:/Users/cookbookstore
+cp -r C:/Users/cookbookstore/* C:\Users\chef-repo\cookbooks
+knife bootstrap windows winrm $wsNodeFqdn --config c:\Users\chef-repo\.chef\knife.rb -x $wsAdminUsername -P $adminPassword -N chefwinNode --node-ssl-verify-mode none
+knife bootstrap $envNode0Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironment-linuxNode0 --node-ssl-verify-mode none
+knife bootstrap $envNode1Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironment-linuxNode1 --node-ssl-verify-mode none
+knife bootstrap $envNode2Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironment-linuxNode2 --node-ssl-verify-mode none
+knife cookbook upload --config c:\Users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ compat_resource audit ohai logrotate sysctl stig
+knife node run_list add --config c:\users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ chefEnvironment-linuxNode0 recipe[audit]
+knife node run_list add --config c:\users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ chefEnvironment-linuxNode1 recipe[audit]
+knife node run_list add --config c:\users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ chefEnvironment-linuxNode2 recipe[audit]
