@@ -111,7 +111,7 @@
         "keyvaultSettings": {
             "keyVaultApiVersion": "2015-06-01",
             "keyVaultId": "[concat('/subscriptions/',parameters('keyVaultSubId'),'/resourceGroups/',parameters('keyVaultRG'),'/providers/Microsoft.KeyVault/vaults/',parameters('keyVaultName'))]",
-            "keyVaultName": "keyvaultchefhol",
+            "keyVaultName": "keyvault-chef-hol",
             "dbPassword": "dbPassword",
             "replicationPassword": "replicationPassword",
             "clusterToken": "clusterToken",
