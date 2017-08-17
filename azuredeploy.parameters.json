@@ -30,10 +30,10 @@
             "value": "chefautomate"
         },
         "keyVaultName": {
-            "value": "keyvaultchefhol"
+            "value": "keyvault-chef-hol"
         },
         "keyVaultSubId": {
-            "value": "086ef973-2199-477b-9b40-c3d05c01a287"
+            "value": "ff70936b-8720-4dfb-abba-2def9e77d9d4"
         },
         "keyVaultRG": {
             "value": "keyvault-chefhol"
