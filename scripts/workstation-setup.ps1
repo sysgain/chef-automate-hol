@@ -25,7 +25,7 @@ knife bootstrap windows winrm $wsNodeFqdn --config c:\Users\chef-repo\.chef\knif
 knife bootstrap $envNode0Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironment-linuxNode0 --node-ssl-verify-mode none
 knife bootstrap $envNode1Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironment-linuxNode1 --node-ssl-verify-mode none
 knife bootstrap $envNode2Fqdn --config c:\Users\chef-repo\.chef\knife.rb --sudo -x $nodesAdminUsername -P $adminPassword -N chefEnvironment-linuxNode2 --node-ssl-verify-mode none
-knife cookbook upload --config c:\Users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ compat_resource audit ohai logrotate sysctl stig
+knife cookbook upload --config c:\Users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ compat_resource audit ohai logrotate sysctl os-hardening
 knife node run_list add --config c:\users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ chefEnvironment-linuxNode0 recipe[audit]
 knife node run_list add --config c:\users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ chefEnvironment-linuxNode1 recipe[audit]
 knife node run_list add --config c:\users\chef-repo\.chef\knife.rb --server-url https://$ChefServerFqdn/organizations/$organizationName/ chefEnvironment-linuxNode2 recipe[audit]
